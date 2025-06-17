@@ -1,0 +1,288 @@
+/* src/components/BTCChart.css */
+.btc-chart-wrapper {
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btc-chart-container {
+  background-color: #222;
+  border-radius: 8px;
+  padding: 16px 0 24px 0; /* top, right, bottom, left */
+  width: 100%;
+  max-width: 900px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
+  position: relative;
+}
+
+@media (max-width: 600px) {
+  .btc-chart-container {
+    max-width: 100%;
+  }
+  .btc-price {
+    font-size: 14px;
+  }
+}
+
+.btc-price {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  background: transparent;
+  font-size: 14px;
+  font-family: monospace;
+  color: #00e676;
+}
+
+.btc-price span {
+  transition: color 0.3s ease;
+}
+
+.btc-price > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@keyframes fadePulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.btc-direction {
+  font-weight: bold;
+  display: inline-block;
+  animation: fadePulse 0.6s ease-in-out;
+}
+
+.btc-direction.up {
+  text-shadow: 0 0 5px #00e676aa;
+}
+
+.btc-direction.down {
+  text-shadow: 0 0 5px #ff5252aa;
+}
+
+
+.btc-alert {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: #ff1744;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  animation: glowAlert 1s ease-in-out;
+}
+
+@keyframes glowAlert {
+  0% {
+    box-shadow: 0 0 0px #ff1744;
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 12px #ff1744;
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 0px #ff1744;
+    opacity: 0.9;
+  }
+}
+
+text {
+  dominant-baseline: middle;
+}
+
+/* Direction Colors */
+.up {
+  color: #5acc6d;
+}
+
+.down {
+  color: #ff4c3e;
+}
+
+
+/* Value & Direction Styling */
+.btc-value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.btc-direction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+}
+
+.btc-arrow {
+  font-size: 17px;
+  padding-bottom: 3px;
+}
+
+.btc-label {
+  font-size: 16px;
+}
+
+.btc-usdt{
+    color: #c9c9c9; 
+    font-weight: bold; 
+    font-size: 18px;
+}
+
+/* Chart SVG: make sure it fills the container */
+.btc-chart-container svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Line style (stroke) */
+.btc-chart-container path[stroke="#F6EB14"] {
+  filter: drop-shadow(0 0 6px #F6EB14aa);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Gradient area style */
+.btc-chart-container path[fill^="url"] {
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+/* Glowing dot animation (optional extra glow) */
+.btc-chart-container circle {
+  filter: drop-shadow(0 0 8px #F6EB14cc);
+}
+
+/* Floating price label */
+.btc-price {
+  position: absolute;
+  top: 18px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 1.1rem;
+  z-index: 2;
+  border-radius: 8px;
+  padding: 6px 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .btc-chart-container {
+    max-width: 100%;
+    padding: 8px 0 12px 0;
+  }
+  .btc-price {
+    right: 8px;
+    font-size: 0.95rem;
+    padding: 4px 8px;
+  }
+}
+
+/* Y-axis label padding */
+.btc-y-axis-label {
+  right: 0;
+  padding-left: 0;   /* Space from the left edge */
+  padding-right: 0;  /* Space from the chart line */
+  font-size: 13px;
+  fill: #c9c9c9;       /* For SVG <text> elements */
+  alignment-baseline: middle;
+}
+
+.btc-y-axis {
+  position: absolute;
+  right: 0;         /* stick to the right */
+  top: 0;
+  height: 100%;
+  padding-right: 0px; /* adjust as needed */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.btc-oc {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  font-family: monospace;
+  font-size: 15px;
+  color: #fff;
+  gap: 24px; /* space between open/close */
+}
+
+.btc-oc-label {
+  background: #ff8c3e;
+  border-radius: 5px;
+  padding: 6px 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btc-oc-close {
+  margin-left: 8px;
+  background: rgba(255,255,255,0.10);
+}
+
+.btc-oc-close-up {
+  background: #79c977!important; /* red */
+  color: #fff !important;
+}
+.btc-oc-close-down {
+  background: #ff4c3e !important; /* green */
+  color: #fff !important;
+}
+.btc-oc-close-same {
+  background: #ff8c3e !important; /* orange */
+  color: #fff !important;
+}
+
+/* Open price dotted line */
+.btc-open-line {
+  stroke: #ff8c3e;
+  stroke-width: 1;
+  stroke-dasharray: 8 8;
+  opacity: 0.8;
+}
+
+/* Open price label group - Inside CHart */
+.btc-open-label-group {}
+
+/* Open price label background */
+.btc-open-label-bg {
+  fill: #ff8c3e;
+  opacity: 0.95;
+  filter: drop-shadow(2px 2px 2px #0003);
+}
+
+/* Open price label text */
+.btc-open-label-text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: monospace;
+  dominant-baseline: middle; /* SVG property for vertical centering */
+  
+}
+/* END Open price label group */

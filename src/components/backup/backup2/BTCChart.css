@@ -1,0 +1,139 @@
+/* src/components/BTCChart.css */
+.btc-chart-wrapper {
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btc-chart-container {
+  background-color: #222;
+  border-radius: 8px;
+  padding: 10px;
+  width: 800px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.btc-price {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  background: transparent;
+  font-size: 14px;
+  font-family: monospace;
+  color: #00e676;
+}
+
+.btc-price span {
+  transition: color 0.3s ease;
+}
+
+.btc-price > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@keyframes fadePulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.btc-direction {
+  font-weight: bold;
+  display: inline-block;
+  animation: fadePulse 0.6s ease-in-out;
+}
+
+.btc-direction.up {
+  text-shadow: 0 0 5px #00e676aa;
+}
+
+.btc-direction.down {
+  text-shadow: 0 0 5px #ff5252aa;
+}
+
+
+.btc-alert {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: #ff1744;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  animation: glowAlert 1s ease-in-out;
+}
+
+@keyframes glowAlert {
+  0% {
+    box-shadow: 0 0 0px #ff1744;
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 12px #ff1744;
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 0px #ff1744;
+    opacity: 0.9;
+  }
+}
+
+text {
+  dominant-baseline: middle;
+}
+
+/* Direction Colors */
+.up {
+  color: #5acc6d;
+}
+
+.down {
+  color: #ff4c3e;
+}
+
+
+/* Value & Direction Styling */
+.btc-value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.btc-direction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+}
+
+.btc-arrow {
+  font-size: 17px;
+  padding-bottom: 3px;
+}
+
+.btc-label {
+  font-size: 16px;
+}
+
+.btc-usdt{
+    color: #c9c9c9; 
+    font-weight: bold; 
+    font-size: 18px;
+}
