@@ -1,6 +1,7 @@
 // src/App.jsx
 import React from 'react';
 import BTCChart from './components/BTCChart';
+//import './App.css';
 import './components/BTCChart.css';
 
 function App() {

@@ -1,0 +1,309 @@
+/* Audio Control Panel Styles */
+
+.audio-control-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1a1a1a;
+  padding: 20px;
+  z-index: 1000;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Main Control Buttons Row */
+.audio-buttons-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+  max-width: 400px;
+  
+}
+
+/* Base Button Styles */
+.audio-btn {
+  background-color: transparent;
+  border: 2px solid transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 10px;
+  color: white;
+  font-weight: normal;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Button Hover State - Border Effect */
+.audio-btn:hover {
+  border-color: none;
+  /*box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);*/
+}
+
+/* Button Active/Clicked State - Blue Border */
+.audio-btn:active,
+.audio-btn:focus {
+  border-color: #2b2b2b;
+  outline: none;
+  /*box-shadow: 0 0 0 1px rgba(74, 158, 255, 0.3);*/
+}
+
+/* Button Pressed State */
+.audio-btn:active {
+  transform: scale(0.95);
+}
+
+/* Play Button Specific - Active State (when clicked) */
+.audio-btn--main:active {
+  /*box-shadow: 
+    0 0 25px rgba(76, 175, 80, 0.3),
+    0 0 40px rgba(76, 175, 80, 0.7),
+    inset 0 0 15px rgba(76, 175, 80, 0.2);*/
+}
+
+/* Play Button Specific - Focus State (when tabbed to) */
+.audio-btn--main:focus {
+  border-color: transparent;
+  outline: none;
+}
+
+/* Mute Button */
+.audio-btn--mute {
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
+  opacity: 0.8;
+}
+
+.audio-btn--mute.muted {
+  color: #f44336;
+  opacity: 1;
+}
+
+.audio-btn--mute:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* FontAwesome Icon Styling */
+.audio-btn svg {
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+/* FontAwesome Size Overrides for Audio Buttons */
+.audio-btn--mute svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.audio-btn--track svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.audio-btn--main svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.audio-btn--repeat svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* FontAwesome Icon Hover Effects */
+.audio-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.audio-btn--main:hover svg {
+  transform: scale(1.05);
+}
+
+/* FontAwesome Icon States */
+.audio-btn--mute.muted svg {
+  color: #f44336;
+}
+
+.audio-btn--main.playing svg {
+  filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.6));
+
+}
+
+/* Previous/Next Track Buttons */
+.audio-btn--track {
+  font-size: 16px;
+  width: 38px;
+  height: 38px;
+  opacity: 0.8;
+}
+
+.audio-btn--track:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Main Play/Pause Button */
+.audio-btn--main {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-size: 20px;
+  width: 52px;
+  height: 52px;
+  transition: all 0.3s ease;
+}
+
+.audio-btn--main.playing {
+  box-shadow: 0 0 20px rgba(55, 211, 60, 0.4);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.audio-btn--main:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+/* Repeat Button */
+.audio-btn--repeat {
+  font-size: 16px;
+  width: 38px;
+  height: 38px;
+  opacity: 0.8;
+}
+
+.audio-btn--repeat:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Progress Bar Container */
+.audio-progress-container {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Time Display */
+.audio-time {
+  color: #ccc;
+  font-size: 12px;
+  font-family: monospace;
+  min-width: 35px;
+}
+
+.audio-time--current {
+  text-align: right;
+}
+
+/* Progress Slider Container */
+.audio-progress-slider {
+  flex: 1;
+  position: relative;
+}
+
+/* Progress Slider Input */
+.audio-progress-input {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  background: #444;
+}
+
+/* Progress Slider - Active Progress */
+.audio-progress-input::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #4CAF50;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.audio-progress-input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #4CAF50;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Track Info */
+.audio-track-info {
+  text-align: center;
+  color: #ccc;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .audio-control-panel {
+    padding: 15px;
+    gap: 12px;
+  }
+  
+  .audio-buttons-row {
+    gap: 20px;
+  }
+  
+  .audio-btn--main {
+    width: 55px;
+    height: 55px;
+    font-size: 18px;
+  }
+  
+  .audio-btn--track {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+  }
+  
+  .audio-btn--mute,
+  .audio-btn--repeat {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .audio-buttons-row {
+    gap: 15px;
+  }
+  
+  .audio-btn--main {
+    width: 50px;
+    height: 50px;
+    font-size: 25px;
+  }
+  
+  .audio-btn--track {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .audio-btn--mute,
+  .audio-btn--repeat {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
