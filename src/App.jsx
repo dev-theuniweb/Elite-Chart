@@ -2,7 +2,7 @@
 import React from 'react';
 import BTCChart from './components/BTCChart';
 //import './App.css';
-import './components/BTCChart.css';
+import './components/BTCChart/styles/index.css';
 
 function App() {
   return (

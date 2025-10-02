@@ -1,6 +1,6 @@
 // src/components/BTCChart.jsx
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import './BTCChart.css';
+import './BTCChart/styles/index.css';
 import './ui/AudioPanel.css';
 import bitcoinIcon from '../assets/bitcoin.png';
 import * as signalR from '@microsoft/signalr';
@@ -17,9 +17,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // Constants
-const PADDING = 40;
-const LEFT_LABEL_WIDTH = 25;
-const RIGHT_LABEL_WIDTH = 100;
+const PADDING = 20;
+const LEFT_LABEL_WIDTH = 20;
+const RIGHT_LABEL_WIDTH = 105;
 const CHART_PADDING_RIGHT = 60;
 const INITIAL_PRICE = 113000;
 const UPPER_THRESHOLD = 150000;
@@ -29,9 +29,9 @@ const DATA_LENGTH = 60;
 // Timeframe configurations
 const TIMEFRAME_CONFIG = {
   '1s': { interval: 1000, label: '1 Second', dataPoints: 60 },    // 60 seconds of data
-  '15s': { interval: 15000, label: '15 Seconds', dataPoints: 60 }, // 15 minutes of data
-  '30s': { interval: 30000, label: '30 Seconds', dataPoints: 60 }, // 30 minutes of data
-  '1m': { interval: 60000, label: '1 Minute', dataPoints: 60 }     // 60 minutes of data
+  '15s': { interval: 15000, label: '15 Seconds', dataPoints: 40 }, // 10 minutes of data (more manageable)
+  '30s': { interval: 30000, label: '30 Seconds', dataPoints: 30 }, // 15 minutes of data 
+  '1m': { interval: 60000, label: '1 Minute', dataPoints: 20 }     // 20 minutes of data
 };
 
 // Helper function to aggregate data points from raw data to 15s intervals
@@ -241,8 +241,46 @@ const BTCChart = () => {
   // State and refs
   const [scrollOffset, setScrollOffset] = useState(0);
   const [chartWidth, setChartWidth] = useState(800);
+  // Legacy betting state (keeping for backward compatibility)
   const [open1Min, setOpen1Min] = useState(null);
   const [close1Min, setClose1Min] = useState(null);
+
+  // Multi-timeframe betting rounds state
+  const [bettingRounds, setBettingRounds] = useState({
+    '15s': {
+      currentRound: null,
+      nextRound: null,
+      openPrice: null,
+      closePrice: null,
+      startTime: null,
+      endTime: null,
+      status: 'waiting', // 'waiting', 'active', 'closing', 'closed'
+      activeBets: [],
+      resolved: false
+    },
+    '30s': {
+      currentRound: null,
+      nextRound: null,
+      openPrice: null,
+      closePrice: null,
+      startTime: null,
+      endTime: null,
+      status: 'waiting',
+      activeBets: [],
+      resolved: false
+    },
+    '1m': {
+      currentRound: null,
+      nextRound: null,
+      openPrice: null,
+      closePrice: null,
+      startTime: null,
+      endTime: null,
+      status: 'waiting',
+      activeBets: [],
+      resolved: false
+    }
+  });
   
   // Audio system - with error handling
   let audio;
@@ -282,11 +320,17 @@ const BTCChart = () => {
   const latestPriceRef = useRef(null);
   const openTimestampRef = useRef(null);
   const signalRConnectionRef = useRef(null);
-  const activeBetsRef = useRef([]);
-  const isResolvingBetsRef = useRef(false);
+  // Legacy refs removed - now using bettingRounds state for multi-timeframe support
   const lastProcessedCandleRef = useRef(null);
 
-  // Add state for result history
+  // Add state for timeframe-specific trend history
+  const [trendHistory, setTrendHistory] = useState({
+    '15s': [],
+    '30s': [],
+    '1m': []
+  });
+  
+  // Legacy resultHistory for backward compatibility (will be deprecated)
   const [resultHistory, setResultHistory] = useState([]);
   
   // Connection status state
@@ -299,10 +343,70 @@ const BTCChart = () => {
   // Dropdown state
   const [showHistory, setShowHistory] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('trends'); // 'trends' or 'bets'
 
-  // Timeframe selection state
+
+  // Timeframe selection state for chart display
   const [selectedTimeframe, setSelectedTimeframe] = useState('1s'); // '1s', '15s', '30s', '1m'
+  
+  // Battle period selection state for betting
+  const [selectedBattlePeriod, setSelectedBattlePeriod] = useState('15s'); // '15s', '30s', '1m'
+
+  // 🎯 NEW: Individual User Betting System
+  const [individualBets, setIndividualBets] = useState([]); // Array to track individual user bets
+  const [userTimer, setUserTimer] = useState({
+    timeLeft: 0,
+    isActive: false,
+    betId: null,
+    timeframe: null,
+    status: 'ready' // 'ready', 'betting', 'resolving'
+  });
+  
+  // Track resolved bet IDs to prevent React StrictMode duplicates
+  const resolvedBetIdsRef = useRef(new Set());
+  
+  // Track active timers to prevent React StrictMode duplicates
+  const activeTimersRef = useRef(new Set());
+  
+  // Track balance updates to prevent duplicates
+  const balanceUpdatedBetsRef = useRef(new Set());
+
+  // Multi-timeframe battle timer state - all timeframes run simultaneously
+  const [battleTimers, setBattleTimers] = useState({
+    '15s': {
+      timeLeft: 0,
+      canBet: true,
+      status: 'waiting',
+      message: 'Waiting for next round...',
+      roundNumber: 0,
+      nextRoundStart: null
+    },
+    '30s': {
+      timeLeft: 0,
+      canBet: true,
+      status: 'waiting',
+      message: 'Waiting for next round...',
+      roundNumber: 0,
+      nextRoundStart: null
+    },
+    '1m': {
+      timeLeft: 0,
+      canBet: true,
+      status: 'waiting',
+      message: 'Waiting for next round...',
+      roundNumber: 0,
+      nextRoundStart: null
+    }
+  });
+
+  // Keep single battleTimer for backward compatibility with UI
+  const [battleTimer, setBattleTimer] = useState({
+    timeLeft: 0,
+    canBet: true,
+    status: 'waiting', // 'waiting', 'active', 'blocked'
+    message: 'Waiting for next round...'
+  });
+
+  const battleTimerRef = useRef(null);
 
   // Center connection status message state
   const [showCenterConnectionStatus, setShowCenterConnectionStatus] = useState(true);
@@ -323,6 +427,9 @@ const BTCChart = () => {
       console.log(`📊 Added new price: ${newPrice}, Raw data length: ${updatedRawData.length}`);
       return updatedRawData;
     });
+    
+    // Update betting rounds with new price - but we need to make sure dependencies are available
+    // This will be called from an effect that has access to updateBettingRounds
   }, []);
 
   // Popup state for bet results
@@ -333,13 +440,10 @@ const BTCChart = () => {
   const [balance, setBalance] = useState(2000);
   const [betAmount, setBetAmount] = useState(100);
   const [selectedBet, setSelectedBet] = useState(null); // 'up' or 'down'
-  const [activeBets, setActiveBets] = useState([]); // Array to track active bets
+  // Legacy activeBets state removed - now using bettingRounds.{timeframe}.activeBets for each timeframe
   const [bettingHistory, setBettingHistory] = useState([]); // Track betting results
 
-  // Keep ref synchronized with activeBets state
-  useEffect(() => {
-    activeBetsRef.current = activeBets;
-  }, [activeBets]);
+  // Legacy ref synchronization removed - using bettingRounds state instead
 
   // Background music control functions
   const toggleBackgroundMusic = useCallback(() => {
@@ -431,9 +535,734 @@ const BTCChart = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
-  // Betting functions
-  const placeBet = (direction) => {
-    // Ensure user interaction is detected when placing a bet (for sound effects only)
+  // Multi-timeframe battle timer calculation functions
+  const calculateMultiBattleTimers = useCallback(() => {
+    const now = new Date();
+    const currentSeconds = now.getSeconds();
+    const currentMinutes = now.getMinutes();
+    const currentHours = now.getHours();
+    
+    const timers = {};
+    
+    // 🎯 HYBRID: Include 15s in synchronized system for trend capture (but individual betting remains separate)
+    const timeframes = [
+      { key: '15s', interval: 15, unit: 'seconds' },
+      { key: '30s', interval: 30, unit: 'seconds' },
+      { key: '1m', interval: 60, unit: 'seconds' }
+    ];
+    
+    timeframes.forEach(({ key, interval, unit }) => {
+      let timeLeft, roundStart, roundEnd, canBet, status, message, roundNumber, nextRoundStart;
+      
+      if (unit === 'seconds') {
+        // All intervals sync to minute start (0 seconds)
+        // Calculate where we are in the current interval cycle
+        const secondsFromMinuteStart = currentSeconds;
+        
+        // Find current interval within the minute
+        const currentInterval = Math.floor(secondsFromMinuteStart / interval);
+        
+        // Calculate this interval's boundaries
+        roundStart = currentInterval * interval;
+        roundEnd = roundStart + interval;
+        
+        // Special handling for 60s (1 minute) - it's always a full minute
+        if (interval === 60) {
+          // 1-minute rounds always start at minute 0 and end at minute 60
+          // They don't follow the interval subdivision logic
+          roundStart = 0;
+          roundEnd = 60;
+          timeLeft = 60 - secondsFromMinuteStart;
+          
+          // 1-minute rounds complete only at the top of each minute (0 seconds)
+          // Unlike 30s which completes at both 30s and 60s (0s)
+        } else {
+          // For 15s and 30s intervals - they subdivide the minute
+          if (roundEnd <= 60) {
+            // Normal case: interval fits within current minute
+            timeLeft = roundEnd - secondsFromMinuteStart;
+          } else {
+            // Edge case: interval would exceed minute boundary
+            // This shouldn't happen with 15s and 30s, but handle it
+            timeLeft = 60 - secondsFromMinuteStart;
+          }
+        }
+        
+        // Ensure timeLeft is always positive
+        if (timeLeft <= 0) {
+          timeLeft = interval;
+        }
+        
+        // Calculate round number for unique identification
+        const totalSecondsToday = currentHours * 3600 + currentMinutes * 60 + currentSeconds;
+        roundNumber = Math.floor(totalSecondsToday / interval);
+        
+        // Calculate next round start time
+        nextRoundStart = new Date();
+        if (interval === 60) {
+          // 1 minute always starts at next minute
+          nextRoundStart.setHours(currentHours, currentMinutes + 1, 0, 0);
+        } else {
+          // 15s and 30s: next start is at roundEnd (if within minute) or next minute
+          if (roundEnd < 60) {
+            nextRoundStart.setHours(currentHours, currentMinutes, roundEnd, 0);
+          } else {
+            nextRoundStart.setHours(currentHours, currentMinutes + 1, 0, 0);
+          }
+        }
+      }
+      
+      // Check if betting is allowed (block last 3 seconds)
+      canBet = timeLeft > 3;
+      status = canBet ? 'active' : 'blocked';
+      
+      if (canBet) {
+        message = `${key.toUpperCase()} Round - ${timeLeft}s left to bet`;
+      } else {
+        message = `Next round in ${timeLeft}s`;
+      }
+      
+      timers[key] = {
+        timeLeft,
+        canBet,
+        status,
+        message,
+        roundNumber,
+        nextRoundStart,
+        interval,
+        roundStart,
+        roundEnd
+      };
+      
+      // Debug logging for synchronization verification
+      if (currentSeconds % 10 === 0) { // Log every 10 seconds to reduce spam
+        console.log(`⏰ [Sync Debug] ${key}: timeLeft=${timeLeft}, roundStart=${roundStart}, roundEnd=${roundEnd}, currentSeconds=${currentSeconds}`);
+      }
+    });
+    
+    return timers;
+  }, []);
+
+  // Legacy single battle timer calculation (for backward compatibility)
+  const calculateBattleTimer = useCallback((timeframe) => {
+    const multiTimers = calculateMultiBattleTimers();
+    return multiTimers[timeframe] || {
+      timeLeft: 0,
+      canBet: false,
+      status: 'waiting',
+      message: 'Invalid timeframe'
+    };
+  }, [calculateMultiBattleTimers]);
+
+  const updateBattleTimers = useCallback(() => {
+    const newTimers = calculateMultiBattleTimers();
+    setBattleTimers(newTimers);
+    
+    // Update single timer for backward compatibility
+    const selectedTimer = newTimers[selectedBattlePeriod];
+    if (selectedTimer) {
+      setBattleTimer({
+        timeLeft: selectedTimer.timeLeft,
+        canBet: selectedTimer.canBet,
+        status: selectedTimer.status,
+        message: selectedTimer.message
+      });
+    }
+  }, [calculateMultiBattleTimers, selectedBattlePeriod]);
+
+  // 15s Trend capture using real SignalR price data
+  const captureTrendFor15s = useCallback((roundNumber, openPrice, closePrice) => {
+    if (!openPrice || !closePrice) {
+      console.log(`📊 [15s] Cannot capture trend for round #${roundNumber} - missing price data`);
+      return;
+    }
+
+    // Check if we've already captured this round (additional safety check)
+    setTrendHistory(prevTrends => {
+      const existingTrends = prevTrends['15s'] || [];
+      const alreadyCaptured = existingTrends.some(trend => trend.roundNumber === roundNumber);
+      
+      if (alreadyCaptured) {
+        console.log(`📊 [15s] Round #${roundNumber} trend already captured, skipping duplicate`);
+        return prevTrends; // Return unchanged state
+      }
+
+      // Calculate trend based on real price movement
+      const priceChange = closePrice - openPrice;
+      const trend = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'even';
+
+      // Create trend result with real data
+      const trendResult = {
+        dateTime: new Date().toISOString(),
+        symbol: 'BTCUSDT',
+        openPrice: openPrice.toFixed(2),
+        closePrice: closePrice.toFixed(2),
+        trend: trend,
+        timeframe: '15s',
+        intervalDuration: '15s',
+        timestamp: new Date(),
+        priceChange: priceChange.toFixed(2),
+        roundNumber: roundNumber
+      };
+
+      console.log(`📊 [15s] Round #${roundNumber} trend captured: ${trend.toUpperCase()} (${openPrice.toFixed(2)} → ${closePrice.toFixed(2)}, ${priceChange > 0 ? '+' : ''}${priceChange.toFixed(2)})`);
+
+      // Add to 15s trend history
+      return {
+        ...prevTrends,
+        '15s': [trendResult, ...existingTrends.slice(0, 19)] // Keep latest 20 trends
+      };
+    });
+  }, []);
+
+  // 30s Trend capture using real SignalR price data
+  const captureTrendFor30s = useCallback((roundNumber, openPrice, closePrice) => {
+    if (!openPrice || !closePrice) {
+      console.log(`📊 [30s] Cannot capture trend for round #${roundNumber} - missing price data`);
+      return;
+    }
+
+    // Check if we've already captured this round (additional safety check)
+    setTrendHistory(prevTrends => {
+      const existingTrends = prevTrends['30s'] || [];
+      const alreadyCaptured = existingTrends.some(trend => trend.roundNumber === roundNumber);
+      
+      if (alreadyCaptured) {
+        console.log(`📊 [30s] Round #${roundNumber} trend already captured, skipping duplicate`);
+        return prevTrends; // Return unchanged state
+      }
+
+      // Calculate trend based on real price movement
+      const priceChange = closePrice - openPrice;
+      const trend = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'even';
+
+      // Create trend result with real data
+      const trendResult = {
+        dateTime: new Date().toISOString(),
+        symbol: 'BTCUSDT',
+        openPrice: openPrice.toFixed(2),
+        closePrice: closePrice.toFixed(2),
+        trend: trend,
+        timeframe: '30s',
+        intervalDuration: '30s',
+        timestamp: new Date(),
+        priceChange: priceChange.toFixed(2),
+        roundNumber: roundNumber
+      };
+
+      console.log(`📊 [30s] Round #${roundNumber} trend captured: ${trend.toUpperCase()} (${openPrice.toFixed(2)} → ${closePrice.toFixed(2)}, ${priceChange > 0 ? '+' : ''}${priceChange.toFixed(2)})`);
+
+      // Add to 30s trend history
+      return {
+        ...prevTrends,
+        '30s': [trendResult, ...existingTrends.slice(0, 19)] // Keep latest 20 trends
+      };
+    });
+  }, []);
+
+  // 1m Trend capture using real SignalR price data
+  const captureTrendFor1m = useCallback((roundNumber, openPrice, closePrice) => {
+    if (!openPrice || !closePrice) {
+      console.log(`📊 [1m] Cannot capture trend for round #${roundNumber} - missing price data`);
+      return;
+    }
+
+    // Check if we've already captured this round (additional safety check)
+    setTrendHistory(prevTrends => {
+      const existingTrends = prevTrends['1m'] || [];
+      const alreadyCaptured = existingTrends.some(trend => trend.roundNumber === roundNumber);
+      
+      if (alreadyCaptured) {
+        console.log(`📊 [1m] Round #${roundNumber} trend already captured, skipping duplicate`);
+        return prevTrends; // Return unchanged state
+      }
+
+      // Calculate trend based on real price movement
+      const priceChange = closePrice - openPrice;
+      const trend = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'even';
+
+      // Create trend result with real data
+      const trendResult = {
+        dateTime: new Date().toISOString(),
+        symbol: 'BTCUSDT',
+        openPrice: openPrice.toFixed(2),
+        closePrice: closePrice.toFixed(2),
+        trend: trend,
+        timeframe: '1m',
+        intervalDuration: '1m',
+        timestamp: new Date(),
+        priceChange: priceChange.toFixed(2),
+        roundNumber: roundNumber
+      };
+
+      console.log(`📊 [1m] Round #${roundNumber} trend captured: ${trend.toUpperCase()} (${openPrice.toFixed(2)} → ${closePrice.toFixed(2)}, ${priceChange > 0 ? '+' : ''}${priceChange.toFixed(2)})`);
+
+      // Add to 1m trend history
+      return {
+        ...prevTrends,
+        '1m': [trendResult, ...existingTrends.slice(0, 19)] // Keep latest 20 trends
+      };
+    });
+  }, []);
+
+  // Helper function to get current round for a timeframe
+  const getCurrentRound = useCallback((timeframe) => {
+    return bettingRounds[timeframe];
+  }, [bettingRounds]);
+
+
+
+  // Multi-timeframe betting round management
+  const updateBettingRounds = useCallback((currentPrice) => {
+    const timers = calculateMultiBattleTimers();
+    
+    setBettingRounds(prevRounds => {
+      const newRounds = { ...prevRounds };
+      
+      Object.keys(timers).forEach(timeframe => {
+        // 🎯 HYBRID: For 15s, only handle trend capture (not betting rounds)
+        // Individual betting is handled separately, but we still want synchronized trends
+        const timer = timers[timeframe];
+        const round = newRounds[timeframe];
+        
+        // Check if a new round should start
+        if (!round.currentRound || timer.roundNumber !== round.currentRound) {
+          // For all timeframes: Start new round but only for trend tracking (not betting)
+          // All betting is now individual-based
+          newRounds[timeframe] = {
+            ...round,
+            currentRound: timer.roundNumber,
+            openPrice: currentPrice,
+            closePrice: null,
+            startTime: new Date(),
+            endTime: new Date(Date.now() + timer.interval * 1000),
+            status: 'trend-only', // All timeframes are trend-only now
+            activeBets: [], // No timeframes use synchronized bets anymore
+            resolved: false,
+            trendCaptured: false
+          };
+          
+          console.log(`🎲 Started new ${timeframe} trend-only round #${timer.roundNumber} at price ${currentPrice}`);
+        }
+        
+        // Update round status based on timer
+        else if (round.currentRound === timer.roundNumber) {
+          // For 15s and 30s: Only handle trend capture, skip betting logic (individual betting handled separately)
+          if (timeframe === '15s') {
+            // Update close price for trend calculation
+            newRounds[timeframe] = {
+              ...round,
+              closePrice: currentPrice
+            };
+            
+            // Capture trend when round completes (timeLeft <= 1)
+            if (timer.timeLeft <= 1 && !round.trendCaptured && round.openPrice && currentPrice) {
+              console.log(`📊 [15s Sync] Capturing trend for round #${timer.roundNumber}: ${round.openPrice} → ${currentPrice}`);
+              captureTrendFor15s(timer.roundNumber, round.openPrice, currentPrice);
+              newRounds[timeframe] = {
+                ...newRounds[timeframe],
+                trendCaptured: true,
+                status: 'closed'
+              };
+            }
+            return; // Skip betting logic for 15s
+          }
+          
+          // For 30s: Only handle trend capture, skip betting logic (individual betting handled separately)
+          if (timeframe === '30s') {
+            // Update close price for trend calculation
+            newRounds[timeframe] = {
+              ...round,
+              closePrice: currentPrice
+            };
+            
+            // Capture trend when round completes (timeLeft <= 1)
+            if (timer.timeLeft <= 1 && !round.trendCaptured && round.openPrice && currentPrice) {
+              console.log(`📊 [30s Sync] Capturing trend for round #${timer.roundNumber}: ${round.openPrice} → ${currentPrice}`);
+              captureTrendFor30s(timer.roundNumber, round.openPrice, currentPrice);
+              newRounds[timeframe] = {
+                ...newRounds[timeframe],
+                trendCaptured: true,
+                status: 'closed'
+              };
+            }
+            return; // Skip betting logic for 30s
+          }
+          
+          // For 1m: Only handle trend capture, skip betting logic (individual betting handled separately)
+          if (timeframe === '1m') {
+            // Update close price for trend calculation
+            newRounds[timeframe] = {
+              ...round,
+              closePrice: currentPrice
+            };
+            
+            // Capture trend when round completes (timeLeft <= 1)
+            if (timer.timeLeft <= 1 && !round.trendCaptured && round.openPrice && currentPrice) {
+              console.log(`📊 [1m Sync] Capturing trend for round #${timer.roundNumber}: ${round.openPrice} → ${currentPrice}`);
+              captureTrendFor1m(timer.roundNumber, round.openPrice, currentPrice);
+              newRounds[timeframe] = {
+                ...newRounds[timeframe],
+                trendCaptured: true,
+                status: 'closed'
+              };
+            }
+            return; // Skip betting logic for 1m
+          }
+          
+          // Continue with betting logic for 30s and 1m
+          newRounds[timeframe] = {
+            ...round,
+            status: timer.canBet ? 'active' : 'closing'
+          };
+          
+          // Set close price when betting closes (3s before round end)
+          if (!timer.canBet && !round.closePrice) {
+            newRounds[timeframe].closePrice = currentPrice;
+            newRounds[timeframe].status = 'closing'; // Keep as closing, not closed yet
+            
+            console.log(`🚫 Betting closed for ${timeframe} round #${timer.roundNumber} at price ${currentPrice}`);
+          }
+          
+          // Capture trend when round ends - different conditions for different timeframes
+          let shouldCaptureTrend = false;
+          
+          if (timeframe === '15s') {
+            // 15s rounds end every 15 seconds
+            shouldCaptureTrend = timer.timeLeft <= 1 && !round.trendCaptured;
+          } else if (timeframe === '30s') {
+            // 30s rounds end every 30 seconds (at 30s and 60s/0s marks)
+            shouldCaptureTrend = timer.timeLeft <= 1 && !round.trendCaptured;
+          } else if (timeframe === '1m') {
+            // 1m rounds end only every 60 seconds (at minute boundaries)
+            // Check current seconds to ensure we're at a minute boundary
+            const currentSeconds = new Date().getSeconds();
+            const isMinuteBoundary = currentSeconds <= 1 || currentSeconds >= 59;
+            shouldCaptureTrend = timer.timeLeft <= 1 && !round.trendCaptured && isMinuteBoundary;
+          }
+          
+          if (shouldCaptureTrend && round.openPrice) {
+            newRounds[timeframe].status = 'closed';
+            newRounds[timeframe].trendCaptured = true;
+            
+            console.log(`🎯 Round ended for ${timeframe} round #${timer.roundNumber} - capturing trend (timeLeft: ${timer.timeLeft}, currentSeconds: ${new Date().getSeconds()})`);
+            
+            // Calculate if multiple timeframes are ending simultaneously
+            const currentTime = new Date();
+            const currentSeconds = currentTime.getSeconds();
+            
+            // Check if this is a synchronized ending point
+            const isSyncPoint = currentSeconds % 30 === 0 || timer.timeLeft <= 1;
+            const isMinuteBoundary = currentSeconds === 0 || timer.timeLeft <= 1;
+            
+            // For synchronized endings, use a common reference price
+            let syncedOpenPrice = round.openPrice;
+            let syncedClosePrice = round.closePrice || currentPrice;
+            
+            // Synchronize pricing for overlapping timeframes
+            if (isSyncPoint && (timeframe === '15s' || timeframe === '30s')) {
+              // Both 15s and 30s should use the same 30-second reference period
+              const thirtySecondRound = newRounds['30s'];
+              if (thirtySecondRound && thirtySecondRound.openPrice) {
+                syncedOpenPrice = thirtySecondRound.openPrice;
+                console.log(`🔄 [${timeframe}] Using synchronized pricing: open=${syncedOpenPrice} (from 30s round)`);
+              }
+            }
+            
+            // For 1-minute rounds, synchronize with 30s rounds for consistent measurement
+            if (isMinuteBoundary && timeframe === '1m') {
+              // 1m should measure the same period as 2x 30s rounds combined
+              // Use the 1m round's own open price, but ensure it started at minute boundary
+              const oneMinuteRound = newRounds['1m'];
+              if (oneMinuteRound && oneMinuteRound.openPrice) {
+                syncedOpenPrice = oneMinuteRound.openPrice;
+                console.log(`🔄 [${timeframe}] Using 1m round pricing: open=${syncedOpenPrice} (full minute from ${oneMinuteRound.startTime})`);
+              }
+            }
+            
+            // Capture trend for 15s timeframe when round actually ends
+            if (timeframe === '15s') {
+              console.log(`🔥 About to capture 15s trend for round #${timer.roundNumber}: open=${syncedOpenPrice}, close=${syncedClosePrice}`);
+              console.log(`📊 [15s] Round details: startTime=${round.startTime}, currentTime=${new Date()}`);
+              // Add a delay to ensure trend appears after countdown timer reaches 0
+              setTimeout(() => {
+                captureTrendFor15s(timer.roundNumber, syncedOpenPrice, syncedClosePrice);
+              }, 1500); // 1.5 second delay to ensure timer completes
+            }
+            
+            // Capture trend for 30s timeframe when round actually ends
+            if (timeframe === '30s') {
+              console.log(`🔥 About to capture 30s trend for round #${timer.roundNumber}: open=${syncedOpenPrice}, close=${syncedClosePrice}`);
+              console.log(`📊 [30s] Round details: startTime=${round.startTime}, currentTime=${new Date()}`);
+              // Add a delay to ensure trend appears after countdown timer reaches 0
+              setTimeout(() => {
+                captureTrendFor30s(timer.roundNumber, syncedOpenPrice, syncedClosePrice);
+              }, 1500); // 1.5 second delay to ensure timer completes
+            }
+            
+            // Capture trend for 1m timeframe when round actually ends
+            if (timeframe === '1m') {
+              console.log(`🔥 About to capture 1m trend for round #${timer.roundNumber}: open=${syncedOpenPrice}, close=${syncedClosePrice}`);
+              console.log(`📊 [1m] Round details: startTime=${round.startTime}, currentTime=${new Date()}, duration=${((new Date() - new Date(round.startTime)) / 1000).toFixed(1)}s`);
+              // Add a delay to ensure trend appears after countdown timer reaches 0
+              setTimeout(() => {
+                captureTrendFor1m(timer.roundNumber, syncedOpenPrice, syncedClosePrice);
+              }, 1500); // 1.5 second delay to ensure timer completes
+            }
+          }
+          
+          // Debug: Log timer status for all timeframes with completion check details
+          if (timeframe === '15s') {
+            console.log(`⏰ [15s Debug] Round #${timer.roundNumber}: timeLeft=${timer.timeLeft}, canBet=${timer.canBet}, trendCaptured=${round.trendCaptured}, status=${newRounds[timeframe].status}`);
+          }
+          
+          if (timeframe === '30s') {
+            console.log(`⏰ [30s Debug] Round #${timer.roundNumber}: timeLeft=${timer.timeLeft}, canBet=${timer.canBet}, trendCaptured=${round.trendCaptured}, status=${newRounds[timeframe].status}`);
+          }
+          
+          if (timeframe === '1m') {
+            const currentSeconds = new Date().getSeconds();
+            const isMinuteBoundary = currentSeconds <= 1 || currentSeconds >= 59;
+            console.log(`⏰ [1m Debug] Round #${timer.roundNumber}: timeLeft=${timer.timeLeft}, currentSeconds=${currentSeconds}, isMinuteBoundary=${isMinuteBoundary}, canBet=${timer.canBet}, trendCaptured=${round.trendCaptured}, status=${newRounds[timeframe].status}`);
+          }
+        }
+      });
+      
+      return newRounds;
+    });
+  }, [calculateMultiBattleTimers, captureTrendFor15s, captureTrendFor30s, captureTrendFor1m]);
+
+  // Add bet to specific timeframe round
+  const addBetToRound = useCallback((timeframe, bet) => {
+    setBettingRounds(prevRounds => {
+      const newRounds = { ...prevRounds };
+      const round = newRounds[timeframe];
+      
+      if (round && round.status === 'active') {
+        newRounds[timeframe] = {
+          ...round,
+          activeBets: [...round.activeBets, { ...bet, timeframe }]
+        };
+        
+        console.log(`💰 Added ${bet.direction} bet of ${bet.amount} to ${timeframe} round #${round.currentRound}`);
+      }
+      
+      return newRounds;
+    });
+  }, []);
+
+  // 🎯 NEW: Individual Betting Helper Functions
+  const createIndividualBet = useCallback((direction, amount, timeframe, currentPrice) => {
+    const now = new Date();
+    const duration = timeframe === '15s' ? 15000 : timeframe === '30s' ? 30000 : 60000;
+    const endTime = new Date(now.getTime() + duration);
+    
+    const newBet = {
+      id: `bet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      direction,
+      amount,
+      timeframe,
+      startTime: now,
+      endTime,
+      startPrice: currentPrice,
+      endPrice: null,
+      status: 'active',
+      result: null,
+      payout: 0
+    };
+    
+    console.log(`🎯 Created individual ${timeframe} bet:`, newBet);
+    return newBet;
+  }, []);
+
+  const startIndividualTimer = useCallback((bet) => {
+    // Prevent React StrictMode from creating duplicate timers
+    if (activeTimersRef.current.has(bet.id)) {
+      console.log(`🛡️ Timer for bet ${bet.id} already active, preventing duplicate`);
+      return;
+    }
+    
+    activeTimersRef.current.add(bet.id);
+    
+    const duration = bet.timeframe === '15s' ? 15000 : bet.timeframe === '30s' ? 30000 : 60000;
+    const endTime = bet.endTime.getTime();
+    
+    // Update user timer
+    setUserTimer({
+      timeLeft: Math.ceil((endTime - Date.now()) / 1000),
+      isActive: true,
+      betId: bet.id,
+      timeframe: bet.timeframe,
+      status: 'betting',
+      betPrice: bet.startPrice
+    });
+
+    // Start countdown
+    const countdown = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.ceil((endTime - now) / 1000);
+      
+      if (remaining <= 0) {
+        clearInterval(countdown);
+        // Remove from active timers
+        activeTimersRef.current.delete(bet.id);
+        setUserTimer(prev => ({ ...prev, timeLeft: 0, status: 'resolving' }));
+        // Resolve the bet
+        setTimeout(() => resolveIndividualBet(bet.id), 500);
+      } else {
+        setUserTimer(prev => ({ ...prev, timeLeft: remaining }));
+      }
+    }, 1000);
+
+    console.log(`⏰ Started ${bet.timeframe} countdown for bet ${bet.id}`);
+  }, []);
+
+  const resolveIndividualBet = useCallback((betId) => {
+    const currentPrice = latestPriceRef.current;
+    if (!currentPrice) return;
+
+    // Check if this bet has already been resolved (React StrictMode protection)
+    if (resolvedBetIdsRef.current.has(betId)) {
+      console.log(`🛡️ Bet ${betId} already processed, preventing React StrictMode duplicate`);
+      return;
+    }
+
+    // Mark this bet as being resolved
+    resolvedBetIdsRef.current.add(betId);
+    
+    setIndividualBets(prevBets => {
+      const betIndex = prevBets.findIndex(bet => bet.id === betId);
+      if (betIndex === -1) return prevBets;
+
+      const bet = prevBets[betIndex];
+      
+      // Double-check if bet is already resolved 
+      if (bet.status === 'completed') {
+        console.log(`⚠️ Bet ${betId} already resolved, skipping duplicate resolution`);
+        return prevBets;
+      }
+      
+      const priceChange = currentPrice - bet.startPrice;
+      let result = 'tie';
+      let payout = bet.amount; // Return original amount for tie
+      
+      if (priceChange > 0 && bet.direction === 'up') {
+        result = 'win';
+        payout = Math.floor(bet.amount * 1.975); // 97.5% profit
+      } else if (priceChange < 0 && bet.direction === 'down') {
+        result = 'win';
+        payout = Math.floor(bet.amount * 1.975); // 97.5% profit
+      } else if (priceChange !== 0) {
+        result = 'loss';
+        payout = 0; // Lose everything
+      }
+
+      const resolvedBet = {
+        ...bet,
+        endPrice: currentPrice,
+        status: 'completed',
+        result,
+        payout
+      };
+
+      console.log(`🎯 Resolved ${bet.timeframe} bet ${betId}: ${bet.direction.toUpperCase()} | ${bet.startPrice} → ${currentPrice} | ${result.toUpperCase()} | $${payout}`);
+
+      // Update balance ONLY if not already updated for this bet
+      if (payout > 0 && !balanceUpdatedBetsRef.current.has(betId)) {
+        balanceUpdatedBetsRef.current.add(betId);
+        setBalance(prevBalance => {
+          console.log(`💰 [WIN PAYOUT] Adding $${payout} to balance: $${prevBalance} → $${prevBalance + payout}`);
+          return prevBalance + payout;
+        });
+      } else if (payout > 0) {
+        console.log(`🛡️ Balance already updated for bet ${betId}, skipping duplicate payout`);
+      }
+
+      // Show popups and play audio
+      if (result === 'win') {
+        audio.playWinSound();
+        setPopupResult({
+          type: 'win',
+          amount: payout - bet.amount,
+          openPrice: bet.startPrice,
+          closePrice: currentPrice
+        });
+        setShowResultPopup(true);
+        setTimeout(() => {
+          setShowResultPopup(false);
+          setPopupResult(null);
+        }, 3000);
+      } else if (result === 'loss') {
+        audio.playLoseSound();
+        setPopupResult({
+          type: 'loss',
+          amount: bet.amount,
+          openPrice: bet.startPrice,
+          closePrice: currentPrice
+        });
+        setShowResultPopup(true);
+        setTimeout(() => {
+          setShowResultPopup(false);
+          setPopupResult(null);
+        }, 3000);
+      }
+
+      // Reset user timer
+      setUserTimer({
+        timeLeft: 0,
+        isActive: false,
+        betId: null,
+        timeframe: null,
+        status: 'ready'
+      });
+
+      // Add resolved bet to betting history
+      const historyEntry = {
+        ...resolvedBet,
+        placedAt: bet.startTime,
+        resolvedAt: new Date(),
+        actualTrend: priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'same'
+      };
+      
+      setBettingHistory(prevHistory => {
+        const exists = prevHistory.some(historyBet => 
+          historyBet.id === bet.id || 
+          (historyBet.placedAt.getTime() === bet.startTime.getTime() && 
+           historyBet.direction === bet.direction && 
+           historyBet.amount === bet.amount)
+        );
+        
+        if (exists) {
+          console.log(`⚠️ Bet ${bet.id} already exists in history, skipping duplicate`);
+          return prevHistory;
+        }
+        
+        return [historyEntry, ...prevHistory.slice(0, 49)];
+      });
+
+      // Update the bet in the array
+      const newBets = [...prevBets];
+      newBets[betIndex] = resolvedBet;
+      
+      return newBets;
+    });
+    
+    // Clean up tracking after a delay to ensure all processing is complete
+    setTimeout(() => {
+      resolvedBetIdsRef.current.delete(betId);
+      balanceUpdatedBetsRef.current.delete(betId);
+    }, 2000);
+  }, [audio, setBalance, setBettingHistory]);
+
+  // 🎯 NEW: Individual bet placement function
+  const placeIndividualBet = useCallback((direction) => {
+    // Check if user already has an active individual bet
+    if (userTimer.isActive) {
+      alert(`You already have an active ${userTimer.timeframe} bet! Please wait for it to complete.`);
+      return;
+    }
+
+    // Ensure user interaction is detected
     if (!audio.hasUserInteracted) {
       console.log('🎵 Enabling audio interaction through bet placement');
       audio.forceEnableInteraction();
@@ -445,196 +1274,52 @@ const BTCChart = () => {
       return;
     }
 
-    if (open1Min === null) {
-      alert('Please wait for the current round to start');
+    const currentPrice = data[data.length - 1]?.value;
+    if (!currentPrice) {
+      alert('Please wait for price data to load');
       return;
     }
 
-    // Check if user already has an active bet for this round
-    const existingBet = activeBets.find(bet => bet.openTimestamp === openTimestampRef.current);
-    if (existingBet) {
-      alert('You already have a bet placed for this round');
-      return;
-    }
-
-    // Create new bet
-    const newBet = {
-      id: Date.now(),
-      direction: direction, // 'up' or 'down'
-      amount: betAmount,
-      openPrice: open1Min,
-      openTimestamp: openTimestampRef.current,
-      placedAt: new Date()
-    };
-
-    // Deduct balance and add bet
-    setBalance(prevBalance => prevBalance - betAmount);
-    setActiveBets(prevBets => [...prevBets, newBet]);
-    setSelectedBet(direction);
+    // Create individual bet
+    const newBet = createIndividualBet(direction, betAmount, selectedBattlePeriod, currentPrice);
     
-    // Play bet sound effect
+    // Deduct balance immediately
+    setBalance(prevBalance => {
+      console.log(`💰 [INDIVIDUAL BET] Deducting $${betAmount} from balance: $${prevBalance} → $${prevBalance - betAmount}`);
+      return prevBalance - betAmount;
+    });
+    
+    // Add to individual bets array
+    setIndividualBets(prevBets => [...prevBets, newBet]);
+    
+    // Start the countdown timer
+    startIndividualTimer(newBet);
+    
+    // Play bet sound
     audio.playBetSound();
     
-    // Reset resolution flag when new bet is placed
-    isResolvingBetsRef.current = false;
+    console.log(`🎯 Individual ${selectedBattlePeriod} bet placed: ${direction.toUpperCase()} - $${betAmount} at $${currentPrice}`);
+    
+  }, [userTimer, audio, betAmount, balance, data, selectedBattlePeriod, createIndividualBet, startIndividualTimer, setBalance, setIndividualBets]);
 
-    console.log(`Bet placed: ${direction.toUpperCase()} - Amount: ${betAmount} - Open Price: ${open1Min}`);
+  // Betting functions
+  const placeBet = (direction) => {
+    // 🎯 NEW: Individual betting for all timeframes (15s, 30s, 1m)
+    if (selectedBattlePeriod === '15s' || selectedBattlePeriod === '30s' || selectedBattlePeriod === '1m') {
+      placeIndividualBet(direction);
+      return; // Explicitly return to prevent old system from running
+    }
+    
+    // Old synchronized betting system removed - now using individual betting for all timeframes
+    console.warn(`⚠️ Fallback: ${selectedBattlePeriod} should use individual betting system`);
   };
 
-  const resolveBets = (finalPrice, trendDirection = null) => {
-    console.log(`🎯 resolveBets called with price: ${finalPrice}, trend: ${trendDirection}`);
-    
-    // Prevent double resolution
-    if (isResolvingBetsRef.current) {
-      console.log('🚫 Already resolving bets, skipping...');
-      return;
-    }
-    
-    // Check if there are active bets before proceeding
-    if (activeBetsRef.current.length === 0) {
-      console.log('No active bets to resolve');
-      return;
-    }
-    
-    // Set flag to prevent double resolution immediately
-    isResolvingBetsRef.current = true;
-    
-    console.log(`🎯 Resolving ${activeBetsRef.current.length} active bets at price ${finalPrice} with trend: ${trendDirection}`);
-    const newBettingHistory = [];
-    const currentActiveBets = [...activeBetsRef.current]; // Create a copy
 
-    currentActiveBets.forEach(bet => {
-      // Use trend direction if provided, otherwise calculate from price change
-      let actualDirection;
-      if (trendDirection) {
-        actualDirection = trendDirection;
-      } else {
-        const priceChange = finalPrice - bet.openPrice;
-        actualDirection = priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'same';
-      }
-      
-      let winnings = 0;
-      let result = 'loss';
-
-      if (bet.direction === actualDirection && actualDirection !== 'same') {
-        // Winner - 1.975x payout (97.5% profit, 2.5% house edge)
-        winnings = Math.floor(bet.amount * 1.975);
-        result = 'win';
-      } else if (actualDirection === 'same') {
-        // Tie - return original bet
-        winnings = bet.amount;
-        result = 'tie';
-      }
-      // Loss case: winnings = 0, already handled
-
-      console.log(`Bet result: ${bet.direction} → ${actualDirection} = ${result} (winnings: ${winnings})`);
-
-      // Add to betting history
-      newBettingHistory.push({
-        ...bet,
-        closePrice: finalPrice,
-        actualTrend: actualDirection, // Add actual trend to betting history
-        result: result,
-        winnings: winnings,
-        payout: winnings - bet.amount,
-        resolvedAt: new Date()
-      });
-
-      // Add winnings to balance
-      if (winnings > 0) {
-        setBalance(prevBalance => {
-          console.log(`💰 Adding ${winnings} winnings to balance (was: ${prevBalance})`);
-          return prevBalance + winnings;
-        });
-      }
-    });
-
-    // Update history - avoid duplicates by checking timestamps
-    setBettingHistory(prevHistory => {
-      const existingTimestamps = new Set(prevHistory.map(bet => bet.placedAt.getTime()));
-      const uniqueNewBets = newBettingHistory.filter(bet => !existingTimestamps.has(bet.placedAt.getTime()));
-      return [...uniqueNewBets, ...prevHistory].slice(0, 50);
-    });
-    
-    // Play win/lose sound effects based on results
-    const hasWins = newBettingHistory.some(bet => bet.result === 'win');
-    const hasLosses = newBettingHistory.some(bet => bet.result === 'loss');
-    const hasTies = newBettingHistory.some(bet => bet.result === 'tie');
-    
-    console.log('🎵 Audio results:', { hasWins, hasLosses, hasTies, results: newBettingHistory.map(b => b.result) });
-    
-    if (hasWins && hasLosses) {
-      // Mixed results - play win sound for any wins
-      console.log('🎵 Playing win sound (mixed results)');
-      audio.playWinSound();
-    } else if (hasWins) {
-      // All wins
-      console.log('🎵 Playing win sound (all wins)');
-      audio.playWinSound();
-    } else if (hasLosses) {
-      // All losses  
-      console.log('🎵 Playing lose sound (all losses)');
-      audio.playLoseSound();
-    } else if (hasTies) {
-      // All ties - play a neutral sound (let's use bet sound)
-      console.log('🎵 Playing bet sound (ties)');
-      audio.playBetSound();
-    } else {
-      console.log('🎵 No win/lose sounds to play');
-    }
-    
-    // Show result popup
-    if (newBettingHistory.length > 0) {
-      const totalWinnings = newBettingHistory.reduce((sum, bet) => sum + (bet.payout > 0 ? bet.payout : 0), 0);
-      const totalLosses = Math.abs(newBettingHistory.reduce((sum, bet) => sum + (bet.payout < 0 ? bet.payout : 0), 0));
-      
-      if (hasWins && !hasLosses) {
-        // Pure win
-        setPopupResult({
-          type: 'win',
-          amount: totalWinnings,
-          totalWinnings: totalWinnings
-        });
-      } else if (hasLosses && !hasWins) {
-        // Pure loss
-        setPopupResult({
-          type: 'loss',
-          amount: totalLosses
-        });
-      } else if (hasWins && hasLosses) {
-        // Mixed results - show net result
-        const netAmount = totalWinnings - totalLosses;
-        setPopupResult({
-          type: netAmount > 0 ? 'win' : 'loss',
-          amount: Math.abs(netAmount),
-          totalWinnings: netAmount > 0 ? netAmount : undefined
-        });
-      }
-      
-      setShowResultPopup(true);
-      
-      // Auto-hide popup after 4 seconds
-      setTimeout(() => {
-        setShowResultPopup(false);
-        setPopupResult(null);
-      }, 4000);
-    }
-    
-    // Clear active bets
-    setActiveBets([]);
-    setSelectedBet(null);
-    
-    // Reset flag after processing is complete
-    setTimeout(() => {
-      isResolvingBetsRef.current = false;
-      console.log('🔓 Reset bet resolution flag');
-    }, 2000); // Longer delay to prevent rapid successive calls
-  };
 
   // Derived constants with dynamic length based on timeframe
   const currentConfig = TIMEFRAME_CONFIG[selectedTimeframe];
   const width = chartWidth;
-  const height = 300;
+  const height = 270;
   const centerY = height / 2;
 
   const latest = data[data.length - 1];
@@ -661,23 +1346,23 @@ const BTCChart = () => {
   // Aggressive dynamic Y-axis scaling to match 1s chart visibility
   const originalRange = max - min;
   
-  // Much more aggressive scaling based on timeframe
+  // More balanced dynamic Y-axis scaling for smoother charts
   let targetRange;
   switch (selectedTimeframe) {
     case '1s':
       targetRange = Math.max(originalRange, 30); // Keep 1s as is
       break;
     case '15s':
-      targetRange = Math.max(originalRange, 100); // Force minimum $100 range
+      targetRange = Math.max(originalRange, 50); // Reduced from 100 for smoother look
       break;
     case '30s':
-      targetRange = Math.max(originalRange, 150); // Force minimum $150 range
+      targetRange = Math.max(originalRange, 70); // Reduced from 150 for smoother look
       break;
     case '1m':
-      targetRange = Math.max(originalRange, 200); // Force minimum $200 range
+      targetRange = Math.max(originalRange, 100); // Reduced from 200 for smoother look
       break;
     default:
-      targetRange = Math.max(originalRange, 100);
+      targetRange = Math.max(originalRange, 50);
   }
   
   // If we need to expand the range, do it around the center
@@ -752,7 +1437,7 @@ const BTCChart = () => {
       isDown: isDownFlag,
       directionColor: isUpFlag ? '#5acc6d' : isDownFlag ? '#ff4c3e' : '#76a8e5',
       arrow: isUpFlag ? '▲' : isDownFlag ? '▼' : '',
-      directionClass: isUpFlag ? 'up' : isDownFlag ? 'down' : 'same',
+      directionClass: isUpFlag ? 'up' : isDownFlag ? 'down' : 'even',
       formattedPercentChange: percentChange >= 0
         ? `+${percentChange.toFixed(4)}%`
         : `${percentChange.toFixed(4)}%`
@@ -765,6 +1450,13 @@ const BTCChart = () => {
     if (latest.value <= LOWER_THRESHOLD) return '⚠️ Price dropped below lower threshold!';
     return null;
   }, [latest.value]);
+
+  // Get current timeframe trends for display
+  const currentTimeframeTrends = useMemo(() => {
+    const trends = trendHistory[selectedBattlePeriod] || [];
+    console.log(`📊 [Display] Showing ${trends.length} trends for ${selectedBattlePeriod} timeframe`);
+    return trends;
+  }, [trendHistory, selectedBattlePeriod]);
 
   // Open price position
   const openY = useMemo(() => {
@@ -795,6 +1487,20 @@ const BTCChart = () => {
       }
     }
   }, [selectedTimeframe, rawData]);
+
+  // Auto-scroll effect for smooth chart movement (like 1s chart)
+  useEffect(() => {
+    if (data.length > 0) {
+      const maxPoints = TIMEFRAME_CONFIG[selectedTimeframe]?.dataPoints || 60;
+      if (data.length > maxPoints * 0.8) { // Start scrolling when 80% full
+        const excessPoints = data.length - maxPoints;
+        const scrollAmount = excessPoints * pointSpacing * 0.5; // Smooth scroll
+        setScrollOffset(scrollAmount);
+      } else {
+        setScrollOffset(0); // Reset scroll for new data
+      }
+    }
+  }, [data.length, selectedTimeframe, pointSpacing]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -990,11 +1696,8 @@ const BTCChart = () => {
         // Only SignalR candle data should populate trends
         // This prevents duplicate trend entries
         
-        // Only resolve bets in fallback mode if SignalR is disconnected AND randomly (to avoid conflicts)
-        if (connectionStatus.status === 'disconnected' && Math.random() > 0.95 && activeBetsRef.current.length > 0) {
-          console.log(`🎯 [Fallback] Resolving ${activeBetsRef.current.length} active bets (SignalR disconnected)`);
-          resolveBets(currentPrice);
-        }
+        // Only resolve bets in fallback mode if SignalR is disconnected (new multi-timeframe system handles this automatically)
+        // The betting rounds effect will handle resolution automatically when rounds close
         
       }, 1000); // Update every second
     };
@@ -1083,40 +1786,12 @@ const BTCChart = () => {
         // Update last processed candle
         lastProcessedCandleRef.current = candleId;
         
-        const newTrendResult = {
-          dateTime: msg.data.dateTime,
-          symbol: msg.data.symbol,
-          openPrice: msg.data.openPrice,
-          closePrice: msg.data.closePrice,
-          trend: msg.data.trend
-        };
+        console.log(`📊 [SignalR] Received candle data: ${msg.data.trend.toUpperCase()} (${msg.data.openPrice} → ${msg.data.closePrice}) [${candleId}]`);
         
-        setResultHistory(prev => {
-          // Check if this exact result already exists in history
-          const isDuplicate = prev.some(item => 
-            item.dateTime === newTrendResult.dateTime &&
-            item.openPrice === newTrendResult.openPrice &&
-            item.closePrice === newTrendResult.closePrice
-          );
-          
-          if (isDuplicate) {
-            console.log(`🚫 [SignalR] Prevented duplicate from being added to history`);
-            return prev;
-          }
-          
-          return [
-            newTrendResult,
-            ...prev.slice(0, 19)
-          ];
-        });
+        // Trend generation removed - will be rebuilt with proper timeframe-specific logic
         
-        console.log(`📊 [SignalR] New trend from candle: ${newTrendResult.trend.toUpperCase()} (${newTrendResult.openPrice} → ${newTrendResult.closePrice}) [${candleId}]`);
-        
-        // Resolve any active bets when a new trend is calculated
-        if (activeBetsRef.current.length > 0) {
-          console.log(`🎯 [SignalR] Resolving ${activeBetsRef.current.length} active bets`);
-          resolveBets(parseFloat(msg.data.closePrice), msg.data.trend);
-        }
+        // Betting resolution is now handled automatically by the multi-timeframe betting rounds effect
+        // No manual resolution needed here as rounds close automatically based on timers
       }
     });
 
@@ -1176,6 +1851,35 @@ const BTCChart = () => {
     };
   }, [addNewPriceData]);
 
+  // Multi-timeframe battle timer useEffect - runs every second to update all timers
+  useEffect(() => {
+    // Initial timer calculation for all timeframes
+    updateBattleTimers();
+    
+    // Set up interval to update all timers every second
+    battleTimerRef.current = setInterval(() => {
+      updateBattleTimers();
+    }, 1000);
+    
+    return () => {
+      if (battleTimerRef.current) {
+        clearInterval(battleTimerRef.current);
+      }
+    };
+  }, [selectedBattlePeriod, updateBattleTimers]);
+
+  // Multi-timeframe betting rounds effect - updates when price changes
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const currentPrice = data[data.length - 1].value;
+      updateBettingRounds(currentPrice);
+    }
+  }, [data, updateBettingRounds]); // Simplified dependencies
+
+
+
+
+
   // Render
   // Calculate rectX and rectWidth
   const rectWidth = 90;
@@ -1216,26 +1920,8 @@ const BTCChart = () => {
       </div>
 
       {/* Timeframe Selection Controls - top right corner */}
-      <div className="btc-timeframe-controls" style={{
-        position: 'absolute',
-        top: '50px',
-        right: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        padding: '6px 8px',
-        backgroundColor: 'rgba(26, 26, 26, 0.9)',
-        borderRadius: '6px',
-        border: '1px solid #333',
-        zIndex: 10,
-        backdropFilter: 'blur(10px)'
-      }}>
-        <span style={{
-          color: '#ffffff',
-          fontSize: '10px',
-          fontWeight: '500',
-          marginRight: '4px'
-        }}>
+      <div className="btc-timeframe-controls">
+        <span className="btc-timeframe-label">
           Time:
         </span>
         
@@ -1243,17 +1929,7 @@ const BTCChart = () => {
           <button
             key={timeframe}
             onClick={() => setSelectedTimeframe(timeframe)}
-            style={{
-              padding: '3px 6px',
-              borderRadius: '3px',
-              border: 'none',
-              backgroundColor: selectedTimeframe === timeframe ? '#F6EB14' : '#333',
-              color: selectedTimeframe === timeframe ? '#000' : '#fff',
-              fontSize: '9px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              textTransform: 'uppercase'
-            }}
+            className={`btc-timeframe-button ${selectedTimeframe === timeframe ? 'active' : ''}`}
           >
             {timeframe}
           </button>
@@ -1261,7 +1937,7 @@ const BTCChart = () => {
       </div>
       
       {/* Add spacing between price and chart */}
-      <div style={{ marginTop: '40px' }}>
+      <div style={{ marginTop: '50px' }}>
         <svg width={width} height={height}>
         <defs>
           <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
@@ -1275,7 +1951,7 @@ const BTCChart = () => {
           {yLabels.map((label, index) => (
             <g key={index}>
               <line
-                x1={PADDING - 20}
+                x1={LEFT_LABEL_WIDTH}
                 x2={width - 85}
                 y1={label.y}
                 y2={label.y}
@@ -1340,208 +2016,42 @@ const BTCChart = () => {
           </text>
         </g>
 
-        {/* Time-based price labels - show at proper intervals */}
-        {points.map((point, index) => {
-          if (index >= data.length) return null;
-          
-          const [x, y] = point;
-          const dataPoint = data[index];
-          
-          // Determine if this point should show a label based on timeframe
-          let shouldShowLabel = false;
-          
-          switch (selectedTimeframe) {
-            case '1s':
-              // Show every 15th point (every 15 seconds)
-              shouldShowLabel = index % 15 === 0;
-              break;
-            case '15s':
-              // Show only the latest 5 price labels
-              shouldShowLabel = index >= data.length - 5;
-              break;
-            case '30s':
-              // Show only the latest 5 price labels
-              shouldShowLabel = index >= data.length - 5;
-              break;
-            case '1m':
-              // Show only the latest 5 price labels
-              shouldShowLabel = index >= data.length - 5;
-              break;
-            default:
-              shouldShowLabel = index % 10 === 0;
-          }
-          
-          // Don't show label on the last point (main price label already shows it)
-          if (index === points.length - 1) shouldShowLabel = false;
-          
-          // Don't show if not selected
-          if (!shouldShowLabel) return null;
-          
-          // Improved positioning to avoid overlaps
-          const isEvenIndex = Math.floor(index / 2) % 2 === 0;
-          const verticalOffset = isEvenIndex ? -18 : 28; // More spacing between alternating labels
-          const safeY = Math.max(15, Math.min(y + verticalOffset, height - 25)); // Keep within chart bounds
-          
-          return (
-            <g key={`time-price-label-${index}`}>
-              {/* Price text with better positioning */}
+        {/* Time-based price labels - HIDDEN FOR CLEANER CHART APPEARANCE */}
+        {/* Commented out to remove messy price labels from chart as requested */}
+
+        {/* Time axis labels at bottom - HIDDEN FOR CLEANER UI */}
+
+        {/* Bet Price Line and Label - Show when user has active bet */}
+        {userTimer.isActive && userTimer.betPrice && (
+          <g className="bet-price-indicator">
+            {/* Horizontal dotted line at bet price */}
+            <line
+              x1="95"
+              x2={width - RIGHT_LABEL_WIDTH}
+              y1={scaleY(userTimer.betPrice)}
+              y2={scaleY(userTimer.betPrice)}
+            />
+            {/* Bet price label */}
+            <g>
+              <rect
+                x="20"
+                y={scaleY(userTimer.betPrice) - 10}
+                width="90"
+                height="20"
+                rx="4"
+              />
               <text
-                x={x}
-                y={safeY}
-                fill="#929292"
-                fontSize="8"
-                fontWeight="500"
-                fontFamily="monospace"
-                textAnchor="middle"
+                x="57"
+                y={scaleY(userTimer.betPrice)}
               >
-                {dataPoint.value.toLocaleString('en-US', {
+                {userTimer.betPrice.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
               </text>
             </g>
-          );
-        })}
-
-        {/* Time axis labels at bottom */}
-        <g className="btc-time-axis">
-          {data.map((dataPoint, index) => {
-            // Calculate label interval for time axis
-            let timeAxisInterval;
-            switch (selectedTimeframe) {
-              case '1s':
-                timeAxisInterval = 15; // Show every 15 seconds
-                break;
-              case '15s':
-                timeAxisInterval = 4; // Show every minute (4 * 15s)
-                break;
-              case '30s':
-                timeAxisInterval = 2; // Show every minute (2 * 30s)
-                break;
-              case '1m':
-                timeAxisInterval = 5; // Show every 5 minutes
-                break;
-              default:
-                timeAxisInterval = 10;
-            }
-            
-            // Only show labels at intervals and for the last point
-            const shouldShowTimeLabel = index % timeAxisInterval === 0 || index === data.length - 1;
-            if (!shouldShowTimeLabel) return null;
-            
-            const x = scaleX(index);
-            if (index === data.length - 1) {
-              // Position last label at the latest point
-              const adjustedX = latestX;
-              
-              // Format time based on timeframe
-              let timeFormat;
-              const time = dataPoint.time;
-              
-              switch (selectedTimeframe) {
-                case '1s':
-                  timeFormat = time.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit',
-                    minute: '2-digit', 
-                    second: '2-digit' 
-                  });
-                  break;
-                case '15s':
-                case '30s':
-                  timeFormat = time.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    second: '2-digit'
-                  });
-                  break;
-                case '1m':
-                  timeFormat = time.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    second: '2-digit'
-                  });
-                  break;
-                default:
-                  timeFormat = time.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    minute: '2-digit', 
-                    second: '2-digit' 
-                  });
-              }
-              
-              return (
-                <g key={`time-axis-${index}`}>
-                  <text
-                    x={adjustedX}
-                    y={height - 10}
-                    fill="#888"
-                    fontSize="10"
-                    fontFamily="monospace"
-                    textAnchor="middle"
-                  >
-                    {timeFormat}
-                  </text>
-                </g>
-              );
-            }
-            
-            // Format time for regular intervals
-            let timeFormat;
-            const time = dataPoint.time;
-            
-            switch (selectedTimeframe) {
-              case '1s':
-                timeFormat = time.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  hour: '2-digit',
-                  minute: '2-digit', 
-                  second: '2-digit' 
-                });
-                break;
-              case '15s':
-              case '30s':
-                timeFormat = time.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  hour: '2-digit', 
-                  minute: '2-digit',
-                  second: '2-digit'
-                });
-                break;
-              case '1m':
-                timeFormat = time.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  hour: '2-digit', 
-                  minute: '2-digit',
-                  second: '2-digit'
-                });
-                break;
-              default:
-                timeFormat = time.toLocaleTimeString('en-US', { 
-                  hour12: false, 
-                  minute: '2-digit', 
-                  second: '2-digit' 
-                });
-            }
-            
-            return (
-              <g key={`time-axis-${index}`}>
-                <text
-                  x={x}
-                  y={height - 10}
-                  fill="#888"
-                  fontSize="10"
-                  fontFamily="monospace"
-                  textAnchor="middle"
-                >
-                  {timeFormat}
-                </text>
-              </g>
-            );
-          })}
-        </g>
+          </g>
+        )}
    
       </svg>
       
@@ -1586,57 +2096,181 @@ const BTCChart = () => {
         {alertMessage && <div className="btc-alert">{alertMessage}</div>}
       </div>
 
-      {/* Trends and Betting Interface Container */}
-      <div className="btc-bottom-container" style={{
-        display: 'flex',
-        gap: '8px',
-        margin: '4px 16px 0 16px',
-        maxWidth: 'calc(100% - 32px)'
-      }}>
+      {/* Battle Timer Display - Above everything */}
+      <div className="btc-timer-container">
+        <div className={`btc-timer-display ${
+          // Show individual timer for all timeframes (15s, 30s, 1m)
+          (selectedBattlePeriod === '15s' || selectedBattlePeriod === '30s' || selectedBattlePeriod === '1m') && userTimer.isActive
+            ? (userTimer.timeLeft <= 3 ? 'blocked' : 'can-bet')
+            : (battleTimer.canBet ? 'can-bet' : 'blocked')
+        } ${
+          (selectedBattlePeriod === '15s' || selectedBattlePeriod === '30s' || selectedBattlePeriod === '1m') && !userTimer.isActive ? 'ready-to-bet' : ''
+        } ${
+          userTimer.isActive && userTimer.betId ? (() => {
+            const currentBet = individualBets.find(bet => bet.id === userTimer.betId);
+            return currentBet?.direction === 'up' ? 'bet-up-active' : currentBet?.direction === 'down' ? 'bet-down-active' : '';
+          })() : ''
+        }`}>
+          {/* Progress Bar */}
+          <div 
+            className={`btc-timer-progress ${
+              selectedBattlePeriod === '15s' && userTimer.isActive
+                ? (userTimer.timeLeft <= 3 ? 'blocked' : 'can-bet')
+                : (battleTimer.timeLeft <= 3 ? 'blocked' : 'can-bet')
+            } ${
+              userTimer.isActive && userTimer.betId ? (() => {
+                const currentBet = individualBets.find(bet => bet.id === userTimer.betId);
+                return currentBet?.direction === 'up' ? 'bet-up-progress' : currentBet?.direction === 'down' ? 'bet-down-progress' : '';
+              })() : ''
+            }`}
+            style={{
+              width: (() => {
+                const totalTime = selectedBattlePeriod === '15s' ? 15 : 
+                                selectedBattlePeriod === '30s' ? 30 : 60;
+                
+                // For all individual betting timeframes: show progress only when bet is active
+                if (selectedBattlePeriod === '15s' || selectedBattlePeriod === '30s' || selectedBattlePeriod === '1m') {
+                  if (userTimer.isActive) {
+                    const progress = (userTimer.timeLeft / totalTime) * 100;
+                    return `${Math.max(0, Math.min(100, progress))}%`;
+                  } else {
+                    // No active bet - show full yellow bar to indicate ready
+                    return '100%';
+                  }
+                }
+                
+                // Use synchronized timer for 30s and 1m
+                const progress = (battleTimer.timeLeft / totalTime) * 100;
+                return `${Math.max(0, Math.min(100, progress))}%`;
+              })()
+            }}
+          ></div>
+          {/* Timer Text */}
+          <span className={`btc-timer-text ${
+            (selectedBattlePeriod === '15s' || selectedBattlePeriod === '30s' || selectedBattlePeriod === '1m') && !userTimer.isActive ? 'ready-state' : ''
+          } ${
+            userTimer.isActive && userTimer.betId ? (() => {
+              const currentBet = individualBets.find(bet => bet.id === userTimer.betId);
+              return currentBet?.direction === 'up' ? 'bet-up' : currentBet?.direction === 'down' ? 'bet-down' : '';
+            })() : ''
+          }`}>
+            {/* Show different messages based on timeframe and bet status */}
+            {(selectedBattlePeriod === '15s' || selectedBattlePeriod === '30s' || selectedBattlePeriod === '1m')
+              ? (userTimer.isActive 
+                  ? (() => {
+                      const currentBet = individualBets.find(bet => bet.id === userTimer.betId);
+                      if (currentBet?.direction === 'up') {
+                        return `Bullish move locked – ${userTimer.timeLeft}s remaining`;
+                      } else if (currentBet?.direction === 'down') {
+                        return `Bearish move locked – ${userTimer.timeLeft}s remaining`;
+                      } else {
+                        return `Your ${selectedBattlePeriod} bet: ${userTimer.timeLeft}s remaining`;
+                      }
+                    })()
+                  : `Ready – Start ${selectedBattlePeriod} cycle!`)
+              : battleTimer.message
+            }
+          </span>
+        </div>
+      </div>
 
-        {/* Trends display - left side */}
-        <div className="btc-trends-container" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          padding: '8px 12px',
-          backgroundColor: '#2a2a2a',
-          borderRadius: '6px',
-          flex: '0.8',
-          minWidth: '400px',
-          position: 'relative'
-        }}>
-          <span style={{
-            color: '#ffffff',
-            fontSize: '12px',
-            fontWeight: '500',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            whiteSpace: 'nowrap'
-          }}>
-            Trends
+      {/* Battle Period + Betting Interface Row */}
+      <div className="btc-control-row">
+
+        {/* Battle Period Selection Panel - Left Side */}
+        <div className="btc-battle-period-container">
+          <span className="btc-battle-period-label">
+            Battle Timer:
+          </span>
+          
+          {/* Battle Period Buttons */}
+          {['15s', '30s', '1m'].map((period) => (
+            <button
+              key={period}
+              onClick={() => setSelectedBattlePeriod(period)}
+              className={`btc-period-button ${selectedBattlePeriod === period ? 'active' : ''} ${
+                userTimer.isActive ? 'disabled' : ''
+              }`}
+              disabled={userTimer.isActive}
+            >
+              {period === '15s' ? '15SEC' : period === '30s' ? '30SEC' : '1MIN'}
+            </button>
+          ))}
+          
+
+        </div>
+
+        {/* Betting Interface - Right Side */}
+        <div className="btc-betting-interface">
+          {/* Balance Display */}
+          <div className="btc-balance-display">
+            <span className="btc-balance-text">
+              Balance: {balance}
+            </span>
+          </div>
+
+          {/* Amount Input */}
+          <div className="btc-amount-container">
+            <div className="btc-amount-input-wrapper">
+              <input
+                type="number"
+                value={betAmount}
+                onChange={(e) => setBetAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                className="btc-amount-input"
+                min="1"
+                max={balance}
+              />
+              <div className="btc-amount-label">
+                Amount
+              </div>
+            </div>
+          </div>
+
+          {/* UP/DOWN Buttons */}
+          <div className="button-container">
+            <button
+              className={`button-half up-half ${
+                userTimer.isActive ? 'disabled' : ''
+              }`}
+              onClick={() => placeBet('up')}
+              disabled={userTimer.isActive}
+            >
+              <span className="up-text">UP</span>
+            </button>
+            <button
+              className={`button-half down-half ${
+                userTimer.isActive ? 'disabled' : ''
+              }`}
+              onClick={() => placeBet('down')}
+              disabled={userTimer.isActive}
+            >
+              <span className="down-text">DOWN</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Trends Display Container - Below Betting Interface */}
+      <div className="btc-trends-full-container">
+
+        {/* Trends display - full width */}
+        <div className="btc-trends-container">
+          <span className="btc-trends-label">
+            {selectedBattlePeriod.toUpperCase()} Trends
           </span>
           
           {/* Display recent trends as compact buttons */}
-          {resultHistory.slice(0, 5).map((item, idx) => {
-            const isLatest = idx === 0 && resultHistory.length > 0;
+          {currentTimeframeTrends.slice(0, 12).map((item, idx) => {
+            const isLatest = idx === 0 && currentTimeframeTrends.length > 0;
+            const trendClass = item.trend === 'up' ? 'up' : item.trend === 'down' ? 'down' : 'draw';
             return (
               <div
-                key={idx}
+                key={`${item.timeframe}-${idx}`}
+                className={`btc-trend-button ${trendClass} ${isLatest ? 'latest' : ''}`}
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: '20px',
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  color: '#ffffff',
-                  backgroundColor: item.trend === 'up' ? '#4CAF50' : item.trend === 'down' ? '#f44336' : '#76a8e5',
-                  minWidth: '35px',
-                  textAlign: 'center',
                   boxShadow: isLatest 
                     ? `0 0 8px ${item.trend === 'up' ? 'rgba(76, 175, 80, 0.6)' : item.trend === 'down' ? 'rgba(244, 67, 54, 0.6)' : 'rgba(118, 168, 229, 0.6)'}` 
                     : '0 1px 2px rgba(0,0,0,0.2)',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
                   animation: isLatest ? 'latestPulse 2s infinite' : 'none',
                   border: isLatest ? '2px solid rgba(255, 255, 255, 0.3)' : 'none'
                 }}
@@ -1647,19 +2281,15 @@ const BTCChart = () => {
           })}
           
           {/* Fill with compact placeholder if not enough history */}
-          {Array.from({ length: Math.max(0, 5 - resultHistory.length) }, (_, idx) => (
+          {Array.from({ length: Math.max(0, 12 - currentTimeframeTrends.length) }, (_, idx) => (
             <div
               key={`placeholder-${idx}`}
+              className="btc-trend-button"
               style={{
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '10px',
-                fontWeight: '600',
-                color: '#666',
                 backgroundColor: '#333',
-                minWidth: '35px',
-                textAlign: 'center',
-                opacity: 0.4
+                color: '#666',
+                opacity: 0.4,
+                boxShadow: 'none'
               }}
             >
               ---
@@ -1686,115 +2316,6 @@ const BTCChart = () => {
           >
             Details
           </button>
-        </div>
-
-        {/* Betting Interface - right side */}
-        <div className="btc-betting-interface" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '10px 20px',
-          backgroundColor: '#1a1a1a',
-          borderRadius: '8px',
-          border: '1px solid #333',
-          flex: '1.5',
-          minWidth: '400px',
-          gap: '10px'
-        }}>
-          {/* Balance Display */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            minWidth: 'auto'
-          }}>
-            <span style={{
-              color: '#ffffff',
-              fontSize: '15px',
-              fontWeight: '600',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              whiteSpace: 'nowrap'
-            }}>
-              Balance: {balance}
-            </span>
-          </div>
-
-          {/* Amount Input */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            position: 'relative',
-            flex: '0 0 auto'
-          }}>
-            <div style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                style={{
-                  width: '120px',
-                  padding: '8px 8px 8px 65px',
-                  borderRadius: '20px',
-                  border: '1px solid #444',
-                  backgroundColor: '#2a2a2a',
-                  color: '#ffffff',
-                  fontSize: '15px',
-                  textAlign: 'right',
-                  outline: 'none',
-                  height: '30px',
-                  boxSizing: 'border-box',
-                  appearance: 'textfield',
-                  MozAppearance: 'textfield'
-                }}
-                min="1"
-                max={balance}
-              />
-              <div style={{
-                position: 'absolute',
-                left: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                pointerEvents: 'none'
-              }}>
-                <span style={{
-                  color: '#999',
-                  fontSize: '12px',
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  whiteSpace: 'nowrap'
-                }}>
-                  Amount
-                </span>
-                <div style={{
-                  width: '1px',
-                  height: '14px',
-                  backgroundColor: '#555',
-                  opacity: 0.7
-                }} />
-              </div>
-            </div>
-          </div>
-
-          {/* UP/DOWN Buttons */}
-          <div className="button-container">
-            <button
-              className="button-half up-half"
-              onClick={() => placeBet('up')}
-            >
-              <span className="up-text">UP</span>
-            </button>
-            <button
-              className="button-half down-half"
-              onClick={() => placeBet('down')}
-            >
-              <span className="down-text">DOWN</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1841,47 +2362,10 @@ const BTCChart = () => {
                   fontSize: '20px',
                   fontWeight: '600',
                   margin: 0,
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  marginBottom: '12px'
+                  fontFamily: 'system-ui, -apple-system, sans-serif'
                 }}>
                   📊 Trading History
                 </h2>
-                
-                {/* Tab buttons */}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => setActiveTab('trends')}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '16px',
-                      border: 'none',
-                      backgroundColor: activeTab === 'trends' ? '#4CAF50' : '#333',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s ease'
-                    }}
-                  >
-                    Price Trends
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('bets')}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '16px',
-                      border: 'none',
-                      backgroundColor: activeTab === 'bets' ? '#4CAF50' : '#333',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s ease'
-                    }}
-                  >
-                    Betting History ({bettingHistory.length})
-                  </button>
-                </div>
               </div>
               
               <button
@@ -1915,49 +2399,66 @@ const BTCChart = () => {
               overflowY: 'auto',
               paddingRight: '8px'
             }}>
-              {/* Price Trends Tab */}
-              {activeTab === 'trends' && (
-                <>
-                  {resultHistory.length > 0 ? (
-                    <div>
-                      {/* Summary Stats */}
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                        gap: '16px',
-                        marginBottom: '24px',
-                        padding: '16px',
-                        backgroundColor: '#252525',
-                        borderRadius: '12px'
-                      }}>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
-                            Total Trades
-                          </div>
-                          <div style={{ color: '#fff', fontSize: '18px', fontWeight: '600' }}>
-                            {resultHistory.length}
-                          </div>
+              {bettingHistory.length > 0 ? (
+                <div>
+                  {/* Summary Stats */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                    gap: '16px',
+                    marginBottom: '24px',
+                    padding: '16px',
+                    backgroundColor: '#252525',
+                    borderRadius: '12px'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
+                        Total Bets
+                      </div>
+                      <div style={{ color: '#fff', fontSize: '18px', fontWeight: '600' }}>
+                        {bettingHistory.length}
+                      </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
-                        Up Trends
+                        Wins
                       </div>
                       <div style={{ color: '#4CAF50', fontSize: '18px', fontWeight: '600' }}>
-                        {resultHistory.filter(item => item.trend === 'up').length}
+                        {bettingHistory.filter(bet => bet.result === 'win').length}
                       </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
-                        Down Trends
+                        Ties
+                      </div>
+                      <div style={{ color: '#76a8e5', fontSize: '18px', fontWeight: '600' }}>
+                        {bettingHistory.filter(bet => bet.result === 'tie').length}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
+                        Losses
                       </div>
                       <div style={{ color: '#f44336', fontSize: '18px', fontWeight: '600' }}>
-                        {resultHistory.filter(item => item.trend === 'down').length}
+                        {bettingHistory.filter(bet => bet.result === 'loss').length}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
+                        Net P&L
+                      </div>
+                      <div style={{ 
+                        color: bettingHistory.reduce((sum, bet) => sum + (bet.payout - bet.amount), 0) >= 0 ? '#4CAF50' : '#f44336', 
+                        fontSize: '18px', 
+                        fontWeight: '600' 
+                      }}>
+                        ${bettingHistory.reduce((sum, bet) => sum + (bet.payout - bet.amount), 0)}
                       </div>
                     </div>
                   </div>
 
-                  {/* Transaction List */}
-                  {resultHistory.map((item, idx) => (
+                  {/* Betting History List */}
+                  {bettingHistory.map((bet, idx) => (
                     <div key={idx} style={{
                       padding: '16px',
                       backgroundColor: idx % 2 === 0 ? '#222' : '#1a1a1a',
@@ -1980,11 +2481,11 @@ const BTCChart = () => {
                           fontSize: '14px',
                           fontFamily: 'monospace'
                         }}>
-                          {new Date(item.dateTime).toLocaleDateString('en-US', {
+                          {bet.placedAt.toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric'
-                          })} at {new Date(item.dateTime).toLocaleTimeString('en-US', {
+                          })} at {bet.placedAt.toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit',
                             second: '2-digit',
@@ -1993,37 +2494,53 @@ const BTCChart = () => {
                         </div>
                         
                         <div style={{
-                          padding: '4px 12px',
-                          borderRadius: '20px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          color: '#ffffff',
-                          backgroundColor: item.trend === 'up' ? '#4CAF50' : item.trend === 'down' ? '#f44336' : '#76a8e5'
+                          display: 'flex',
+                          gap: '8px',
+                          alignItems: 'center'
                         }}>
-                          {item.trend === 'up' ? '📈 UP' : item.trend === 'down' ? '📉 DOWN' : '➡️ EVEN'}
+                          <div style={{
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            fontWeight: '600',
+                            color: '#fff',
+                            backgroundColor: '#555'
+                          }}>
+                            {bet.timeframe || '15s'}
+                          </div>
+                          <div style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: '#ffffff',
+                            backgroundColor: bet.result === 'win' ? '#4CAF50' : bet.result === 'tie' ? '#76a8e5' : '#f44336'
+                          }}>
+                            {bet.result === 'win' ? 'WIN' : bet.result === 'tie' ? 'EVEN' : 'LOSS'}
+                          </div>
                         </div>
                       </div>
                       
                       <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        marginBottom: '8px'
                       }}>
                         <div style={{
                           color: '#ffffff',
                           fontSize: '16px',
                           fontFamily: 'monospace'
                         }}>
-                          {item.symbol}: ${item.openPrice} → ${item.closePrice}
+                          {bet.direction.toUpperCase()} ${bet.amount} | Open Price ${bet.startPrice} → Closing Price ${bet.endPrice}
                         </div>
                         
                         <div style={{
-                          color: item.trend === 'up' ? '#4CAF50' : item.trend === 'down' ? '#f44336' : '#888',
+                          color: bet.payout - bet.amount > 0 ? '#4CAF50' : bet.payout - bet.amount < 0 ? '#f44336' : '#888',
                           fontSize: '14px',
                           fontWeight: '600'
                         }}>
-                          {item.trend === 'up' ? '+' : item.trend === 'down' ? '-' : '±'}
-                          ${Math.abs(parseFloat(item.closePrice) - parseFloat(item.openPrice)).toFixed(2)}
+                          {bet.payout - bet.amount > 0 ? '+' : ''}${bet.payout - bet.amount}
                         </div>
                       </div>
                     </div>
@@ -2035,148 +2552,10 @@ const BTCChart = () => {
                   padding: '40px',
                   color: '#888'
                 }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-                  <div style={{ fontSize: '18px', marginBottom: '8px' }}>No price trends yet</div>
-                  <div style={{ fontSize: '14px' }}>Price trends will appear here as trading rounds complete</div>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
+                  <div style={{ fontSize: '18px', marginBottom: '8px' }}>No betting history yet</div>
+                  <div style={{ fontSize: '14px' }}>Place your first bet to see your betting history here</div>
                 </div>
-              )}
-                </>
-              )}
-
-              {/* Betting History Tab */}
-              {activeTab === 'bets' && (
-                <>
-                  {bettingHistory.length > 0 ? (
-                    <div>
-                      {/* Betting Summary Stats */}
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                        gap: '16px',
-                        marginBottom: '24px',
-                        padding: '16px',
-                        backgroundColor: '#252525',
-                        borderRadius: '12px'
-                      }}>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
-                            Total Bets
-                          </div>
-                          <div style={{ color: '#fff', fontSize: '18px', fontWeight: '600' }}>
-                            {bettingHistory.length}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
-                            Wins
-                          </div>
-                          <div style={{ color: '#4CAF50', fontSize: '18px', fontWeight: '600' }}>
-                            {bettingHistory.filter(bet => bet.result === 'win').length}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ color: '#888', fontSize: '12px', marginBottom: '4px' }}>
-                            Total Winnings
-                          </div>
-                          <div style={{ color: '#4CAF50', fontSize: '18px', fontWeight: '600' }}>
-                            ${bettingHistory.reduce((sum, bet) => sum + (bet.payout > 0 ? bet.payout : 0), 0)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Betting History List */}
-                      {bettingHistory.map((bet, idx) => (
-                        <div key={idx} style={{
-                          padding: '16px',
-                          backgroundColor: idx % 2 === 0 ? '#222' : '#1a1a1a',
-                          borderRadius: '8px',
-                          marginBottom: '8px',
-                          border: '1px solid #333',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#2a2a2a'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = idx % 2 === 0 ? '#222' : '#1a1a1a'}
-                        >
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '8px'
-                          }}>
-                            <div style={{
-                              color: '#cccccc',
-                              fontSize: '14px',
-                              fontFamily: 'monospace'
-                            }}>
-                              {bet.placedAt.toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                              })} at {bet.placedAt.toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                                hour12: true
-                              })}
-                            </div>
-                            
-                            <div style={{
-                              padding: '4px 12px',
-                              borderRadius: '20px',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              color: '#ffffff',
-                              backgroundColor: bet.result === 'win' ? '#4CAF50' : bet.result === 'tie' ? '#ff9800' : '#f44336'
-                            }}>
-                              {bet.result === 'win' ? '🎉 WIN' : bet.result === 'tie' ? '🤝 TIE' : '❌ LOSS'}
-                            </div>
-                          </div>
-                          
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '8px'
-                          }}>
-                            <div style={{
-                              color: '#ffffff',
-                              fontSize: '16px',
-                              fontFamily: 'monospace'
-                            }}>
-                              Bet: {bet.direction.toUpperCase()} ${bet.amount} | Result: {bet.actualTrend ? bet.actualTrend.toUpperCase() : 'N/A'}
-                            </div>
-                            
-                            <div style={{
-                              color: bet.payout > 0 ? '#4CAF50' : bet.payout < 0 ? '#f44336' : '#888',
-                              fontSize: '14px',
-                              fontWeight: '600'
-                            }}>
-                              {bet.payout > 0 ? '+' : ''}${bet.payout}
-                            </div>
-                          </div>
-
-                          <div style={{
-                            color: '#888',
-                            fontSize: '12px',
-                            fontFamily: 'monospace'
-                          }}>
-                            ${bet.openPrice} → ${bet.closePrice} | Winnings: ${bet.winnings}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '40px',
-                      color: '#888'
-                    }}>
-                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
-                      <div style={{ fontSize: '18px', marginBottom: '8px' }}>No betting history yet</div>
-                      <div style={{ fontSize: '14px' }}>Place your first bet to see your betting history here</div>
-                    </div>
-                  )}
-                </>
               )}
             </div>
           </div>
@@ -2317,6 +2696,17 @@ const BTCChart = () => {
             {/* Main Result Text */}
             <div className="result-popup-main-text">
               {popupResult.type === 'win' ? 'Win' : 'Miss'}
+            </div>
+
+            {/* Price Information */}
+            <div className="result-popup-prices">
+              Open Price {popupResult.openPrice.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })} - Closing Price {popupResult.closePrice.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
             </div>
 
             {/* Subtitle */}

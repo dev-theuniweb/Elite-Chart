@@ -9,6 +9,45 @@ Deployed on Vercel under "HENG's projects" team for user testing and demonstrati
 
 ---
 
+## 🎨 **THEMING SYSTEM (NEW - October 2025)**
+
+### **Design Tokens Architecture**
+This project now uses a **professional design tokens system** for easy theming and reusability!
+
+✅ **Create new themed projects in 15 minutes**  
+✅ **Change colors, sizes with CSS variables**  
+✅ **No code duplication across projects**  
+✅ **Professional, maintainable CSS structure**
+
+### **Quick Start - Create New Project:**
+```bash
+# 1. Copy project folder
+cp -r BBB BBB-YourProject
+
+# 2. Edit ONE file only
+# Edit: src/components/BTCChart/styles/theme.css
+# Change: --color-up, --color-down, --bg-main
+
+# 3. Deploy!
+npm run build
+```
+
+### **File Structure:**
+```
+src/components/BTCChart/styles/
+├── index.css   (import hub)
+├── theme.css   (🎨 EDIT THIS for new projects)
+├── core.css    (desktop styles - don't touch)
+└── mobile.css  (responsive styles - don't touch)
+```
+
+📚 **Full Documentation:**
+- [CSS Refactor Plan](./CSS_REFACTOR_PLAN.md) - Complete implementation guide
+- [Theming Guide](./THEMING_GUIDE.md) - How to create new themed projects
+- [Quick Reference](./QUICK_REFERENCE.md) - Commands and tokens cheat sheet
+
+---
+
 ## 📋 **QUICK SUMMARY**
 
 ### ✅ **WHAT WE COMPLETED**

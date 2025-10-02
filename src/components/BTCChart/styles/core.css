@@ -1,0 +1,718 @@
+/* ===================================================
+   CORE STYLES - Desktop & Common Components
+   
+   ⚠️ DO NOT EDIT COLORS/SIZES DIRECTLY!
+   Edit theme.css to change colors and sizes.
+   This file uses CSS variables from theme.css
+   =================================================== */
+
+/* src/components/BTCChart.css */
+.btc-chart-wrapper {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btc-chart-container {
+  background-color: var(--bg-panel);
+  border-radius: 8px;
+  padding: 16px 0 24px 0; /* top, right, bottom, left */
+  width: 100%;
+  max-width: 920px;
+  height:475px;
+  /*display: flex;*/
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
+  position: relative;
+  box-sizing: border-box; /* Added for consistent box model */
+}
+
+/* Connection status - small indicator in top right */
+.btc-chart-container .connection-status {
+  order: 2;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 128, 0, 0.9);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.btc-chart-container .connection-status .status-indicator {
+  width: 4px;
+  height: 4px;
+  background: var(--text-glow-up);
+  border-radius: 50%;
+}
+
+/* Timeframe Controls */
+.btc-timeframe-controls {
+  position: absolute;
+  top: 15px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background-color: rgba(26, 26, 26, 0.9);
+  border-radius: 6px;
+  border: 1px solid var(--bg-hover);
+  z-index: 10;
+}
+
+.btc-timeframe-label {
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.btc-timeframe-button {
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: none;
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  width: 28px;
+  text-align: center;
+  min-width: 28px;
+}
+
+.btc-timeframe-button.active {
+  background-color: var(--color-accent);
+  color: var(--bg-main);
+}
+
+.btc-timeframe-button:hover {
+  background-color: var(--border-color-hover);
+}
+
+.btc-timeframe-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.btc-timeframe-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(246, 235, 20, 0.5);
+}
+
+.btc-timeframe-button.active:hover {
+  background-color: var(--color-accent);
+}
+
+.btc-timeframe-button.active:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: var(--color-accent);
+  color: var(--bg-main);
+}
+
+/* Battle Period Selection Panel */
+.btc-battle-period-container {
+  transition: all 0.3s ease;
+}
+
+.btc-battle-period-container button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.btc-battle-period-container button:active {
+  transform: scale(0.98);
+}
+
+/* Responsive design for battle period panel */
+@media (max-width: 768px) {
+  .btc-battle-period-container {
+    margin: 8px 8px 4px 8px !important;
+    padding: 10px 12px !important;
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  
+  .btc-battle-period-container button {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    min-width: 50px !important;
+  }
+  
+  /* Control row responsive layout */
+  .btc-control-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin: 4px 8px 8px 8px !important;
+  }
+  
+  .btc-betting-interface {
+    width: 100% !important;
+    max-width: none !important;
+    flex-wrap: wrap;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+  }
+  
+  .btc-timer-container {
+    margin: 8px 8px 4px 8px !important;
+  }
+  
+  .btc-trends-full-container {
+    margin: 0 8px 4px 8px !important;
+  }
+}
+
+/* Battle Timer Animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .btc-chart-container {
+    max-width: 100%;
+  }
+  .btc-price {
+    font-size: 14px;
+  }
+}
+
+/* Mobile layout optimization */
+@media (max-width: 768px) {
+  .btc-chart-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 400px;
+    padding: 8px 16px 16px 16px; /* Normal padding without audio space */
+    position: relative;
+    overflow: visible;
+  }
+  
+  .btc-price {
+    position: relative !important; /* Change from absolute */
+    top: auto !important;
+    left: auto !important;
+    order: -1; /* Move to top */
+    margin: 16px 0 8px 0; /* Top and bottom margins */
+    align-self: center; /* Center horizontally */
+    z-index: 10;
+  }
+}
+
+.btc-price {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  background: transparent;
+  font-size: 14px;
+  font-family: monospace;
+  color: var(--text-glow-up);
+}
+
+.btc-price span {
+  transition: color 0.3s ease;
+}
+
+.btc-price > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@keyframes fadePulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modal animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal base styles for better cross-device compatibility */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+}
+
+.modal-content {
+  background-color: var(--bg-section) !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--bg-hover) !important;
+  position: relative !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.btc-direction {
+  font-weight: bold;
+  display: inline-block;
+  animation: fadePulse 0.6s ease-in-out;
+}
+
+.btc-direction.up {
+  text-shadow: 0 0 5px var(--text-glow-up)aa;
+}
+
+.btc-direction.down {
+  text-shadow: 0 0 5px var(--text-glow-down)aa;
+}
+
+
+.btc-alert {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: var(--color-danger);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: bold;
+  animation: glowAlert 1s ease-in-out;
+}
+
+@keyframes glowAlert {
+  0% {
+    box-shadow: 0 0 0px var(--color-danger);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 12px var(--color-danger);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 0px var(--color-danger);
+    opacity: 0.9;
+  }
+}
+
+text {
+  dominant-baseline: middle;
+}
+
+/* Direction Colors */
+.up {
+  color: var(--color-up-glow);
+}
+
+.down {
+  color: var(--color-down-glow);
+}
+
+
+/* Value & Direction Styling */
+.btc-value {
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.btc-direction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+}
+
+.btc-arrow {
+  font-size: 17px;
+  padding-bottom: 3px;
+}
+
+.btc-label {
+  font-size: 25px;
+}
+
+/* Bitcoin icon styling */
+.btc-icon {
+    width: 35px;
+    height: 35px;
+    vertical-align: middle;
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+}
+
+.btc-usdt{
+    color: var(--text-secondary); 
+    font-weight: bold; 
+    font-size: 25px;
+    margin-right: 10px;
+}
+
+/* Chart SVG: make sure it fills the container */
+.btc-chart-container svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Line style (stroke) */
+.btc-chart-container path[stroke="var(--color-accent)"] {
+  filter: drop-shadow(0 0 6px var(--color-accent)aa);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Gradient area style */
+.btc-chart-container path[fill^="url"] {
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+/* Glowing dot animation (optional extra glow) */
+.btc-chart-container circle {
+  filter: drop-shadow(0 0 8px var(--color-accent)cc);
+}
+
+/* Floating price label */
+.btc-price {
+  position: absolute;
+  top: 8px;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 1.1rem;
+  z-index: 2;
+  border-radius: 8px;
+  padding: 8px 16px 8px 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .btc-chart-container {
+    max-width: 100%;
+    padding: 8px 0 12px 0;
+  }
+  .btc-price {
+    right: 8px;
+    font-size: 0.95rem;
+    padding: 4px 8px;
+  }
+}
+
+/* Y-axis label padding */
+.btc-y-axis-label {
+  right: 0;
+  padding-left: 0;   /* Space from the left edge */
+  padding-right: 0;  /* Space from the chart line */
+  font-size: 13px;
+  fill: var(--text-secondary);       /* For SVG <text> elements */
+  alignment-baseline: middle;
+}
+
+.btc-y-axis {
+  position: absolute;
+  right: 0;         /* stick to the right */
+  top: 0;
+  height: 100%;
+  width: 100%;
+  padding-right: 0px; /* adjust as needed */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.btc-oc {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  font-family: monospace;
+  font-size: 15px;
+  color: var(--text-primary);
+  gap: 24px; /* space between open/close */
+}
+
+.btc-oc-label {
+  background: var(--color-warning-alt);
+  border-radius: 5px;
+  padding: 6px 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btc-oc-close {
+  margin-left: 8px;
+  background: rgba(255,255,255,0.10);
+}
+
+.btc-oc-close-up {
+  background: var(--color-up-glow)!important; /* red */
+  color: var(--text-primary) !important;
+}
+.btc-oc-close-down {
+  background: var(--color-down-glow) !important; /* green */
+  color: var(--text-primary) !important;
+}
+.btc-oc-close-same {
+  background: var(--color-warning-alt) !important; /* orange */
+  color: var(--text-primary) !important;
+}
+
+/* Bottom Hostory Price data*/
+.btc-result-history-container {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  z-index: 100;
+  background: var(--bg-modal);
+  color: var(--text-modal);
+  font-family: monospace;
+  font-size: 13px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  min-width: 420px;
+  min-height: 20px;
+  text-align: left;
+  box-shadow: 0 2px 2px var(--bg-main)6;
+  transition: background 0.2s;
+  max-width: 90%;
+}
+
+@media (max-width: 600px) {
+  .btc-result-history-container {
+    margin: 16px 0 0 0;
+    min-width: unset;
+    max-width: 98vw;
+    font-size: 12px;
+    padding: 10px 8px 8px 8px;
+  }
+}
+
+.btc-result-history-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Add this to push arrow to right */
+  gap: 8px;
+}
+
+.btc-result-history-list {
+  margin-top: 10px; /* Add space below header */
+  display: flex;
+  flex-direction: column; /* Ensure dropdown opens downward */
+  gap: 6px;
+}
+
+.btc-result-history-item {
+  color: var(--text-primary);
+}
+
+.btc-result-history-trend-up {
+  color: var(--color-up-glow);
+  font-weight: bold;
+}
+
+.btc-result-history-trend-down {
+  color: var(--color-down-glow);
+  font-weight: bold;
+}
+
+.btc-result-history-trend-even {
+  color: var(--color-info);
+  font-weight: bold;
+}
+
+.btc-result-history-arrow {
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.btc-result-history-chevron {
+  font-size: 13px;
+  font-weight: bold;
+  margin-right: -2px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.btc-result-history-chevron.open {
+  transform: rotate(180deg);
+}
+
+.btc-dropdown-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: 0;         /* Remove left margin */
+  font-size: 18px;        /* Smaller size */
+  transition: transform 0.2s;
+  color: var(--bg-main);
+}
+
+.btc-dropdown-arrow svg {
+  width: 20px;            /* Smaller SVG */
+  height: 20px;
+  color: var(--bg-main);
+}
+
+.btc-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.btc-value.up, .btc-label.up {
+  color: var(--color-up-glow);
+  font-weight: bold;
+}
+.btc-value.down, .btc-label.down {
+  color: var(--color-down-glow);
+  font-weight: bold;
+}
+.btc-value.even, .btc-label.even {
+  color: var(--color-info);
+  font-weight: bold;
+}
+/* END Bottom Hostory Price data*/
+
+/* Custom Arrow-Shaped Buttons */
+.button-container {
+  display: flex;
+  gap: 2px;
+}
+
+.button-half {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+}
+
+.button-half:focus,
+.button-half:active {
+  outline: none !important;
+}
+
+.button-half:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+.up-half {
+  width: 100px;
+  background-color: var(--color-up);
+  border-radius: 30px 0 0 30px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%);
+}
+
+.up-half:focus,
+.up-half:active {
+  background-color: var(--color-up) !important;
+}
+
+.down-half {
+  width: 100px;
+  background-color: var(--color-down);
+  border-radius: 0 30px 30px 0;
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%);
+  margin-left: -20px;
+}
+
+.down-half:focus,
+.down-half:active {
+  background-color: var(--color-down) !important;
+}
+
+.up-half:hover {
+  background-color: var(--color-up-hover);
+}
+
+.down-half:hover {
+  background-color: var(--color-down-light);
+}
+
+.up-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.down-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Hide number input arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox and modern browsers */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
