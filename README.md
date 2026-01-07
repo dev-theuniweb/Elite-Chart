@@ -1,9 +1,6 @@
-# BBB - Bitcoin Battle Chart (Real-Time Price Prediction Game)
+# Elitechart - Bitcoin Battle Chart (Real-Time Price Prediction Game)
 
 A sophisticated real-time Bitcoin price chart application with integrated betting functionality, built with React and Vite. Users can predict whether Bitcoin price will go up or down in live trading rounds and win rewards based on their predictions.
-
-## 🎯 **LIVE DEMO**
-**🌐 Demo URL**: https://bbb-d5eu83ej2-hengs-projects-f9eafd38.vercel.app
 
 Deployed on Vercel under "HENG's projects" team for user testing and demonstration.
 
@@ -228,16 +225,6 @@ src/
 - **Validation**: Balance checks and duplicate bet prevention
 
 ---
-
-**📧 Contact**: Ready for user testing and feedback collection  
-**🔗 Repository**: https://github.com/dev-theuniweb/Price-Stream-UI-Chart  
-**🌐 Live Demo**: https://bbb-d5eu83ej2-hengs-projects-f9eafd38.vercel.app
-│   │   └── PriceDisplay.jsx        # Price formatting component
-├── hooks/                    # Custom React hooks (structure ready)
-├── utils/                    # Utility functions (structure ready)
-├── constants/                # Configuration constants (structure ready)
-└── assets/                   # Images and static resources
-```
 
 ## 🎮 How to Play
 
