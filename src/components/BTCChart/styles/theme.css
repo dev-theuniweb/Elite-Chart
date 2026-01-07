@@ -20,31 +20,40 @@
    ============================================ */
 
 :root {
-  /* ===== PRIMARY COLORS (MAIN ACTIONS) ===== */
-  --color-up: #4CAF50;              /* UP/WIN button color (Green) */
-  --color-up-light: #66BB6A;        /* UP button lighter shade */
-  --color-up-hover: #45a049;        /* UP button hover state */
-  --color-up-glow: #5acc6d;         /* UP text glow/highlight */
+  /* ===== TYPOGRAPHY ===== */
+  /* San Francisco (SF) font - Apple's system font, fallback to system fonts */
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", 
+                 system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: "SF Mono", Monaco, Consolas, "Courier New", monospace;
   
-  --color-down: #FF5722;            /* DOWN/LOSS button color (Red) */
-  --color-down-light: #e64a19;      /* DOWN button lighter shade */
-  --color-down-hover: #e64a19;      /* DOWN button hover state */
-  --color-down-glow: #ff4c3e;       /* DOWN text glow/highlight */
+  /* ===== PRIMARY COLORS (MAIN ACTIONS) ===== */
+  --color-up: #00AD62;              /* UP/WIN button color (Binance Green) */
+  --color-up-light: #2EDB96;        /* UP button lighter shade */
+  --color-up-hover: #0BB872;        /* UP button hover state */
+  --color-up-glow: #00AD62;         /* UP text glow/highlight */
+  
+  --color-down: #EC2A37;            /* DOWN/LOSS button color (Custom Red) */
+  --color-down-light: #ef4551;      /* DOWN button lighter shade */
+  --color-down-hover: #d3222e;      /* DOWN button hover state */
+  --color-down-glow: #EC2A37;       /* DOWN text glow/highlight */
+  --color-loss: #EC2A37;            /* Loss state (Custom Red) */
   
   /* ===== ACCENT COLORS ===== */
-  --color-warning: #FEAE00;         /* Warning/pending state (Orange/Gold) */
-  --color-warning-alt: #FF9800;     /* Alternative warning (Orange) */
-  --color-warning-light: #FFB74D;   /* Light warning */
-  --color-accent: #F6EB14;          /* Accent/highlight (Yellow)  */
+  --color-binance: #F3BA2F;         /* Binance brand gold */
+  --color-warning: #f6eb14;         /* Warning/pending state (Custom Yellow) */
+  --color-warning-alt: #f6eb14;     /* Alternative warning (Custom Yellow) */
+  --color-warning-light: #f8f03a;   /* Light warning (Lighter yellow) */
+  --color-accent: #f6eb14;          /* Accent/highlight (Custom Yellow)  */
   --color-info: #76a8e5;            /* Info/draw state (Blue) */
-  --color-danger: #ff1744;          /* Danger/error (Bright red) */
-  --color-success: #34b246;         /* Success messages (Green) */
+  --color-danger: #EC2A37;          /* Danger/error (Custom Red) */
+  --color-success: #00AD62;         /* Success messages (Binance Green) */
   
   /* ===== BACKGROUND COLORS ===== */
-  --bg-main: #000000;               /* Main page background (Black) */
-  --bg-panel: #222222;              /* Chart container background (Dark gray) */
-  --bg-section: #1a1a1a;            /* Section panels (Very dark gray) */
-  --bg-input: #2a2a2a;              /* Input fields background */
+  --bg-main: #0C0E11;               /* Main page background (Dark blue-black) */
+  --bg-panel: #181A1F;              /* Chart container background (Dark gray-blue) */
+  --bg-section: #1F2328;            /* Section panels (Very dark gray) */
+  --bg-darker: #252525;             /* Slightly darker background */
+  --bg-input: #2A313C;              /* Input fields background */
   --bg-hover: #333333;              /* Hover state background */
   --bg-button: #333333;             /* Button background */
   --bg-modal: #23272f;              /* Modal background */
@@ -54,12 +63,12 @@
   
   /* ===== TEXT COLORS ===== */
   --text-primary: #ffffff;          /* Primary text (White) */
-  --text-secondary: #c9c9c9;        /* Secondary text (Light gray) */
-  --text-muted: #aaa;               /* Muted text */
+  --text-secondary: #cccccc;        /* Secondary text (Light gray) */
+  --text-muted: #888888;            /* Muted text (Dark gray) */
   --text-dark: #1F1F1F;             /* Dark text (for light backgrounds) */
   --text-modal: #C7D0DD;            /* Modal text color */
-  --text-glow-up: #00e676;          /* UP text with glow effect */
-  --text-glow-down: #ff5252;        /* DOWN text with glow effect */
+  --text-glow-up: #00AD62;          /* UP text with glow effect (Binance Green) */
+  --text-glow-down: #EC2A37;        /* DOWN text with glow effect (Custom Red) */
   
   /* ===== BORDER COLORS ===== */
   --border-color: #444444;          /* Default border */

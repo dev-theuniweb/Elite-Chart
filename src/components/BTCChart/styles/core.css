@@ -7,6 +7,312 @@
    =================================================== */
 
 /* src/components/BTCChart.css */
+
+/* ========================================
+   TWO-COLUMN LAYOUT
+   ======================================== */
+
+.btc-two-column-wrapper {
+  display: flex;
+  gap: 0;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.btc-chart-container {
+  flex: 1;
+  background-color: var(--bg-panel);
+  border-radius: 8px 0 0 8px;
+  padding: 16px 0 0 0;
+  min-width: 0;
+  height: auto;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.btc-trading-panel {
+  width: 380px;
+  background-color: #1a1d26;
+  border-radius: 0 8px 8px 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
+}
+
+/* Trading Balance Section */
+.trading-balance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trading-balance-label {
+  font-size: 12px;
+  color: #8e92a3;
+  font-weight: 400;
+}
+
+.trading-balance-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gmchip-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.gmchip-text {
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.gmchip-amount {
+  font-size: 20px;
+  color: #fbbf24;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+/* Trading Amount Section */
+.trading-amount-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -10px;
+}
+
+.trading-amount-input {
+  width: 100%;
+  padding: 12px 12px;
+  background: #0f1118;
+  border: 1px solid #2a2e39;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-family: monospace;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.trading-amount-input::placeholder {
+  color: #6b7280;
+  font-size: 15px;
+  opacity: 1;
+}
+
+.trading-amount-input:focus {
+  border-color: #fbbf24;
+}
+
+/* Trading Trend Section */
+.trading-trend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trading-trend-label {
+  font-size: 12px;
+  color: #8e92a3;
+  font-weight: 400;
+}
+
+.trading-trend-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.trend-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px;
+  background: #0f1118;
+  border: 1px solid #2a2e39;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none; /* Remove default browser focus outline */
+}
+
+.trend-button:focus {
+  outline: none; /* Ensure no focus outline */
+}
+
+.trend-button:hover:not(:disabled) {
+  border-color: #fbbf24;
+  transform: translateY(-2px);
+}
+
+.trend-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.trend-button.trend-up {
+  border-color: #10b981;
+}
+
+.trend-button.trend-up:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+}
+
+.trend-button.trend-down {
+  border-color: #ef4444;
+}
+
+.trend-button.trend-down:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+/* Selected state for trend buttons */
+.trend-button.selected.trend-up {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  border-width: 2px;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+.trend-button.selected.trend-down {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  border-width: 2px;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  animation: pulse-red 2s ease-in-out infinite;
+}
+
+/* Pulse animations for selected buttons */
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    transform: scale(1.02);
+  }
+}
+
+.trend-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.trend-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Candlestick style - vertical line with rectangle body */
+.trend-dots .dot {
+  position: relative;
+  width: 2px;
+  height: 25px;
+  border-radius: 0;
+}
+
+/* Candlestick wick (thin vertical line) */
+.trend-dots .dot::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 100%;
+  background-color: inherit;
+}
+
+/* Candlestick body (thick rectangle in middle) */
+.trend-dots .dot::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 15px;
+  background-color: inherit;
+}
+
+.trend-dots .dot.green {
+  background-color: #10b981;
+}
+
+.trend-dots .dot.red {
+  background-color: #ef4444;
+}
+
+/* Buy Now Button */
+.trading-buy-button {
+  width: 100%;
+  padding: 12px;
+  background: var(--color-binance);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-top: auto;
+}
+
+.trading-buy-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.trading-buy-button:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   LAYOUT & CONTAINERS
+   ======================================== */
+
+/* Chart SVG wrapper - spacing between price and chart (desktop) */
+.btc-chart-svg-wrapper {
+  margin-top: 60px;              /* Desktop: keep original 50px spacing */
+}
+
+/* TradingView Widget Container */
+.tradingview-widget-container {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .btc-chart-wrapper {
   width: 100vw;
   height: 100vh;
@@ -16,61 +322,79 @@
   align-items: center;
 }
 
-.btc-chart-container {
-  background-color: var(--bg-panel);
-  border-radius: 8px;
-  padding: 16px 0 24px 0; /* top, right, bottom, left */
-  width: 100%;
-  max-width: 920px;
-  height:475px;
-  /*display: flex;*/
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin: 0 auto;
-  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
-  position: relative;
-  box-sizing: border-box; /* Added for consistent box model */
-}
-
 /* Connection status - small indicator in top right */
 .btc-chart-container .connection-status {
   order: 2;
   position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(0, 128, 0, 0.9);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 8px;
-  font-weight: 500;
+  top: 10px;
+  right: 10px;
   z-index: 10;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btc-chart-container .connection-status.connected {
+  background: rgba(76, 175, 80, 0.9);
+}
+
+.btc-chart-container .connection-status.fallback {
+  background: rgba(255, 193, 7, 0.9);
+}
+
+.btc-chart-container .connection-status.connecting {
+  background: rgba(33, 150, 243, 0.9);
+}
+
+.btc-chart-container .connection-status.error {
+  background: rgba(244, 67, 54, 0.9);
 }
 
 .btc-chart-container .connection-status .status-indicator {
-  width: 4px;
-  height: 4px;
-  background: var(--text-glow-up);
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background: currentColor;
 }
+
+.btc-chart-container .connection-status .status-indicator.connecting {
+  animation: pulse 1.5s infinite;
+}
+
+/* ========================================
+   TIMEFRAME & CONTROLS
+   ======================================== */
 
 /* Timeframe Controls */
 .btc-timeframe-controls {
   position: absolute;
-  top: 15px;
-  right: 16px;
+  top: 30px;
+  right: 25px; /* Position to the left of the icon buttons */
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 8px;
   background-color: rgba(26, 26, 26, 0.9);
   border-radius: 6px;
-  border: 1px solid var(--bg-hover);
   z-index: 10;
+}
+
+/* Hide mobile clock icon on desktop */
+.btc-clock-mobile {
+  display: none !important;
+}
+
+/* Show desktop clock icon */
+.btc-clock-desktop {
+  display: flex !important;
 }
 
 .btc-timeframe-label {
@@ -86,17 +410,15 @@
   border: none;
   background-color: var(--bg-hover);
   color: var(--text-primary);
-  font-size: 9px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  width: 28px;
+  width: 85px;
   text-align: center;
-  min-width: 28px;
 }
 
 .btc-timeframe-button.active {
-  background-color: var(--color-accent);
+  background-color: var(--color-binance);
   color: var(--bg-main);
 }
 
@@ -127,6 +449,16 @@
 
 /* Battle Period Selection Panel */
 .btc-battle-period-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  flex: 0 0 auto;
+  width: auto;
+  order: 2;
   transition: all 0.3s ease;
 }
 
@@ -137,45 +469,6 @@
 
 .btc-battle-period-container button:active {
   transform: scale(0.98);
-}
-
-/* Responsive design for battle period panel */
-@media (max-width: 768px) {
-  .btc-battle-period-container {
-    margin: 8px 8px 4px 8px !important;
-    padding: 10px 12px !important;
-    flex-wrap: wrap;
-    gap: 8px !important;
-  }
-  
-  .btc-battle-period-container button {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-    min-width: 50px !important;
-  }
-  
-  /* Control row responsive layout */
-  .btc-control-row {
-    flex-direction: column !important;
-    gap: 8px !important;
-    margin: 4px 8px 8px 8px !important;
-  }
-  
-  .btc-betting-interface {
-    width: 100% !important;
-    max-width: none !important;
-    flex-wrap: wrap;
-    gap: 8px !important;
-    padding: 8px 12px !important;
-  }
-  
-  .btc-timer-container {
-    margin: 8px 8px 4px 8px !important;
-  }
-  
-  .btc-trends-full-container {
-    margin: 0 8px 4px 8px !important;
-  }
 }
 
 /* Battle Timer Animation */
@@ -194,36 +487,9 @@
   }
 }
 
-@media (max-width: 600px) {
-  .btc-chart-container {
-    max-width: 100%;
-  }
-  .btc-price {
-    font-size: 14px;
-  }
-}
-
-/* Mobile layout optimization */
-@media (max-width: 768px) {
-  .btc-chart-container {
-    flex-direction: column;
-    height: auto;
-    min-height: 400px;
-    padding: 8px 16px 16px 16px; /* Normal padding without audio space */
-    position: relative;
-    overflow: visible;
-  }
-  
-  .btc-price {
-    position: relative !important; /* Change from absolute */
-    top: auto !important;
-    left: auto !important;
-    order: -1; /* Move to top */
-    margin: 16px 0 8px 0; /* Top and bottom margins */
-    align-self: center; /* Center horizontally */
-    z-index: 10;
-  }
-}
+/* ========================================
+   PRICE DISPLAY
+   ======================================== */
 
 .btc-price {
   position: absolute;
@@ -233,6 +499,9 @@
   font-size: 14px;
   font-family: monospace;
   color: var(--text-glow-up);
+  z-index: 2;
+  border-radius: 8px;
+  padding: 8px 16px 8px 6px;
 }
 
 .btc-price span {
@@ -242,7 +511,7 @@
 .btc-price > div {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 @keyframes fadePulse {
@@ -309,16 +578,18 @@
 
 .btc-direction {
   font-weight: bold;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   animation: fadePulse 0.6s ease-in-out;
 }
 
 .btc-direction.up {
-  text-shadow: 0 0 5px var(--text-glow-up)aa;
+  text-shadow: none;
 }
 
 .btc-direction.down {
-  text-shadow: 0 0 5px var(--text-glow-down)aa;
+  text-shadow: none;
 }
 
 
@@ -368,24 +639,47 @@ text {
   font-weight: bold;
 }
 
-.btc-direction {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: bold;
+.btc-arrow {
+  font-size: 12px;
+  padding-bottom: 0px;
 }
 
-.btc-arrow {
-  font-size: 17px;
-  padding-bottom: 3px;
+/* Arrow indicators for UP/DOWN */
+.btc-arrow-up,
+.btc-arrow-down {
+  margin-right: 0px;
+  margin-left: 0px;
+}
+
+.btc-arrow-even {
+  margin-left: 4px;
 }
 
 .btc-label {
-  font-size: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1;
+  margin-top: 8px;
+  align-self: flex-start;
 }
 
 /* Bitcoin icon styling */
 .btc-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  margin-right: 2px;
+}
+
+/* ========================================
+   CHART SVG & VISUALIZATION
+   ======================================== */
+
+/* Chart SVG: make sure it fills the container */
+.btc-chart-svg {
     width: 35px;
     height: 35px;
     vertical-align: middle;
@@ -394,13 +688,12 @@ text {
 }
 
 .btc-usdt{
-    color: var(--text-secondary); 
+    color: var(--text-primary); 
     font-weight: bold; 
     font-size: 25px;
-    margin-right: 10px;
+    margin-right: 2px;
 }
 
-/* Chart SVG: make sure it fills the container */
 .btc-chart-container svg {
   display: block;
   width: 100%;
@@ -409,7 +702,7 @@ text {
 
 /* Line style (stroke) */
 .btc-chart-container path[stroke="var(--color-accent)"] {
-  filter: drop-shadow(0 0 6px var(--color-accent)aa);
+  filter: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -422,32 +715,7 @@ text {
 
 /* Glowing dot animation (optional extra glow) */
 .btc-chart-container circle {
-  filter: drop-shadow(0 0 8px var(--color-accent)cc);
-}
-
-/* Floating price label */
-.btc-price {
-  position: absolute;
-  top: 8px;
-  color: var(--text-primary);
-  font-family: monospace;
-  font-size: 1.1rem;
-  z-index: 2;
-  border-radius: 8px;
-  padding: 8px 16px 8px 6px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .btc-chart-container {
-    max-width: 100%;
-    padding: 8px 0 12px 0;
-  }
-  .btc-price {
-    right: 8px;
-    font-size: 0.95rem;
-    padding: 4px 8px;
-  }
+  filter: none;
 }
 
 /* Y-axis label padding */
@@ -476,7 +744,7 @@ text {
   margin-top: 16px;
   display: flex;
   align-items: center;
-  font-family: monospace;
+  font-family: var(--font-family);
   font-size: 15px;
   color: var(--text-primary);
   gap: 24px; /* space between open/close */
@@ -516,7 +784,7 @@ text {
   z-index: 100;
   background: var(--bg-modal);
   color: var(--text-modal);
-  font-family: monospace;
+  font-family: var(--font-family-mono);
   font-size: 13px;
   padding: 10px 15px;
   border-radius: 5px;
@@ -526,16 +794,6 @@ text {
   box-shadow: 0 2px 2px var(--bg-main)6;
   transition: background 0.2s;
   max-width: 90%;
-}
-
-@media (max-width: 600px) {
-  .btc-result-history-container {
-    margin: 16px 0 0 0;
-    min-width: unset;
-    max-width: 98vw;
-    font-size: 12px;
-    padding: 10px 8px 8px 8px;
-  }
 }
 
 .btc-result-history-header {
@@ -623,6 +881,301 @@ text {
 }
 /* END Bottom Hostory Price data*/
 
+/* Phase Result Icons - Bull/Bear indicators */
+.btc-phase-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 15px 0;
+  min-height: 60px;
+}
+
+.btc-phase-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.btc-phase-icon.hidden {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.btc-phase-icon.visible {
+  opacity: 1;
+  transform: scale(1);
+  animation: iconPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes iconPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes iconBreath {
+  from {
+    animation-timing-function: ease-out;
+  }
+  to {
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 0 2px #F6EB14) brightness(0.9);
+    animation-timing-function: ease-in-out;
+  }
+}
+
+.result-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.bull-icon {
+  filter: drop-shadow(0 0 3px rgba(90, 204, 109, 0.6));
+}
+
+.bear-icon {
+  filter: drop-shadow(0 0 3px rgba(255, 76, 62, 0.6));
+}
+
+.even-icon {
+  filter: drop-shadow(0 0 3px rgba(118, 168, 229, 0.6));
+}
+
+/* Round Progress Container - Left Side Panel */
+.btc-round-progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 10px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  flex: 0 0 auto;
+  width: auto;
+  font-family: var(--font-family);
+  transition: all 0.3s ease;
+}
+
+.btc-progress-label-inline {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.btc-progress-time-inline {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  min-width: 65px;
+  text-align: right;
+}
+
+.btc-progress-bar-container-inline {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.btc-progress-bar-fill-inline {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-warning), var(--color-up));
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+
+.btc-phase-icons-inline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  margin-left: auto;
+}
+
+/* Bottom Row Container - Holds 3 Candles + Insurance Badges */
+.bottom-row-container {
+  position: absolute;
+  bottom: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 10;
+}
+
+/* Phase Result Panel with Background */
+.btc-phase-panel {
+  position: relative;
+  background: none;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 0px;
+}
+
+.btc-phase-title {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  letter-spacing: 0.5px;
+  animation: titleFade 0.5s ease-in-out;
+  white-space: nowrap;
+  order: 2;
+}
+
+@keyframes titleFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Phase Result Icons - Inside Chart */
+.btc-phase-icons-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  order: 1;
+}
+
+.btc-phase-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 25px;
+  height: 25px;
+  position: relative;
+  animation: iconPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Phase Candlestick Container */
+.phase-candle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Phase Candlestick - Larger than trend buttons */
+.phase-candle .dot {
+  position: relative;
+  width: 3px;
+  height: 35px;
+  border-radius: 0;
+}
+
+/* Candlestick wick (thin vertical line) */
+.phase-candle .dot::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background-color: inherit;
+}
+
+/* Candlestick body (thick rectangle in middle) */
+.phase-candle .dot::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 25px;
+  background-color: inherit;
+  border-radius: 2px;
+}
+
+.phase-candle .dot.green {
+  background-color: #10b981;
+  filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.6));
+  animation: phaseCandlePulseGreen 2s ease-in-out infinite;
+}
+
+.phase-candle .dot.red {
+  background-color: #ef4444;
+  filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.6));
+  animation: phaseCandlePulseRed 2s ease-in-out infinite;
+}
+
+.phase-candle .dot.blue {
+  background-color: #329EDE;
+  filter: drop-shadow(0 0 8px rgba(50, 158, 222, 0.6));
+  animation: phaseCandlePulseBlue 2s ease-in-out infinite;
+}
+
+/* Pulsing animations for phase candlesticks */
+@keyframes phaseCandlePulseGreen {
+  0%, 100% {
+    filter: drop-shadow(0 0 1px rgba(16, 185, 129, 0.6));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.6));
+    transform: scale(1.05);
+  }
+}
+
+@keyframes phaseCandlePulseRed {
+  0%, 100% {
+    filter: drop-shadow(0 0 1px rgba(239, 68, 68, 0.6));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 3px rgba(239, 68, 68, 1));
+    transform: scale(1.05);
+  }
+}
+
+@keyframes phaseCandlePulseBlue {
+  0%, 100% {
+    filter: drop-shadow(0 0 1px rgba(50, 158, 222, 0.6));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 3px rgba(50, 158, 222, 1));
+    transform: scale(1.05);
+  }
+}
+
+.btc-phase-icon-wrapper .empty-icon {
+  opacity: 0.6;
+}
+
 /* Custom Arrow-Shaped Buttons */
 .button-container {
   display: flex;
@@ -630,17 +1183,17 @@ text {
 }
 
 .button-half {
-  height: 30px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   color: white;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   border: none;
   outline: none;
@@ -656,10 +1209,10 @@ text {
 }
 
 .up-half {
-  width: 100px;
+  width: 132px;
   background-color: var(--color-up);
-  border-radius: 30px 0 0 30px;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%);
+  border-radius: 5px 0 0 5px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
 }
 
 .up-half:focus,
@@ -668,11 +1221,11 @@ text {
 }
 
 .down-half {
-  width: 100px;
+  width: 132px;
   background-color: var(--color-down);
-  border-radius: 0 30px 30px 0;
-  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%);
-  margin-left: -20px;
+  border-radius: 0 5px 5px 0;
+  clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%);
+  margin-left: -12px;
 }
 
 .down-half:focus,
@@ -689,7 +1242,7 @@ text {
 }
 
 .up-text {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: white;
   text-transform: uppercase;
@@ -697,7 +1250,7 @@ text {
 }
 
 .down-text {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: white;
   text-transform: uppercase;
@@ -715,4 +1268,1177 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* ========================================
+   BATTLE PERIOD AND BETTING INTERFACE STYLES (DESKTOP)
+   ⚠️ Mobile overrides are in mobile.css
+   ======================================== */
+
+/* Timer Container */
+.btc-timer-container {
+  display: flex;
+  justify-content: center;
+  margin: 6px auto 12px auto;
+  max-width: 975px;
+  width: calc(100% - 32px);
+}
+
+.btc-timer-display {
+  position: relative;
+  width: 100%;
+  height: 13px;
+  border-radius: 20px;
+  background-color: var(--bg-section);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btc-timer-progress {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.btc-timer-progress.ready-to-bet {
+  background: #1D2024;
+}
+
+.btc-timer-progress.blocked {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-warning));
+}
+
+.btc-timer-progress.bet-up-progress {
+  background: linear-gradient(90deg, var(--color-up), var(--color-warning)) !important;
+}
+
+.btc-timer-progress.bet-down-progress {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-up)) !important;
+}
+
+.btc-timer-progress.warning {
+  background: linear-gradient(90deg, var(--color-warning-alt), var(--color-warning-light));
+}
+
+.btc-timer-text {
+  position: relative;
+  z-index: 2;
+  font-size: 10px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.btc-timer-text.ready-state {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.btc-timer-text.bet-up {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.btc-timer-text.bet-down {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.btc-timer-display.bet-up-active {
+  background-color: var(--color-up);
+  height: 13px;
+}
+
+.btc-timer-display.bet-down-active {
+  background-color: var(--color-down);
+  height: 13px;
+}
+
+.btc-timer-display.can-bet,
+.btc-timer-display.blocked {
+  background-color: var(--bg-section);
+}
+
+.btc-timer-dot {
+  display: none;
+}
+
+/* ========================================
+   BETTING INTERFACE
+   ======================================== */
+
+/* Control Row Layout */
+.btc-control-row {
+  display: flex;
+  gap: 12px;
+  margin: 12px auto 12px auto;
+  max-width:900px;
+  width: calc(100% - 32px);
+  align-items: center;
+  justify-content: center;
+}
+
+.btc-battle-period-label {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  white-space: nowrap;
+  margin-right: 0px;
+}
+
+.btc-period-button {
+  padding: 3px 20px 3px 20px;
+  border-radius: 5px;
+    border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  text-transform:lowercase;
+}
+
+.btc-period-button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color-hover);
+}
+
+.btc-period-button.active {
+  border: 1px solid var(--color-up);
+  background-color: var(--color-up);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.btc-period-button.active:hover {
+  background-color: var(--color-up);
+  border-color: var(--color-up);
+}
+
+.btc-period-button.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btc-period-button.disabled:hover {
+  transform: none !important;
+}
+
+.btc-period-button.active.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: var(--color-up) !important;
+  border-color: var(--color-up) !important;
+  color: #ffffff !important;
+}
+
+.btc-period-button.active.disabled:hover {
+  background-color: var(--color-up) !important;
+  border-color: var(--color-up) !important;
+  transform: none !important;
+}
+
+/* Betting Interface */
+.btc-betting-interface {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 0 10px 15px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  gap: 22px;
+  flex: 1 1 auto;
+  order: 1;
+}
+
+.btc-balance-display {
+  display: flex;
+  align-items: center;
+  min-width: auto;
+}
+
+.btc-balance-text {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  white-space: nowrap;
+}
+
+.btc-amount-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.btc-amount-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btc-amount-input {
+  width: 145px;
+  padding: 10px 12px 10px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: right;
+  outline: none;
+  height: 32px;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  font-weight: 600;
+}
+
+.btc-amount-label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-primary);
+  padding: 2px 6px 2px 0px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.button-container .btc-period-button.disabled,
+.button-container .button-half.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bet Price Indicator */
+.bet-price-indicator line {
+  stroke: var(--color-warning);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 1;
+}
+
+.bet-price-indicator rect {
+  fill: var(--color-warning);
+  rx: 4;
+  opacity: 1;
+  /* Width and height now controlled by JSX inline attributes */
+}
+
+.bet-price-indicator text {
+  fill: var(--text-dark);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  text-anchor: middle;
+  dominant-baseline: central;
+  alignment-baseline: middle;
+  text-align: center;
+}
+
+/* Latest Point (yellow dot) with pulsing animation */
+.btc-latest-point {
+  animation: pointPulse 2s ease-in-out infinite;
+}
+
+@keyframes pointPulse {
+  0%, 100% {
+    opacity: 1;
+    r: 4;
+  }
+  50% {
+    opacity: 1;
+    r: 5;
+  }
+}
+
+/* Current Price Label (floating price on chart) */
+.btc-current-price-label {
+  /* Container for the entire price label group */
+  pointer-events: none; /* Prevent mouse interaction */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.btc-price-label-rect {
+  transition: fill 0.3s ease;
+  /* Add shadow effect for better visibility */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.btc-price-label-rect.up {
+  fill: var(--color-up-glow);
+}
+
+.btc-price-label-rect.down {
+  fill: var(--color-down-glow);
+}
+
+.btc-price-label-rect.even {
+  fill: var(--color-info);
+}
+
+.btc-price-label-text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  /* Text shadow for better readability */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  /* Ensure crisp rendering */
+  shape-rendering: crispEdges;
+}
+
+/* Center Connection Status Message */
+.center-connection-status {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 25%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  color: white;
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: center;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.center-connection-status.connecting {
+  background: rgba(246, 70, 93, 0.75); /* Binance Red for connecting */
+}
+
+.center-connection-status.connected {
+  background: rgba(14, 203, 129, 0.75); /* Binance Green for connected */
+}
+
+.center-connection-status.waiting {
+  background: rgba(255, 193, 7, 0.95); /* Yellow/orange for waiting */
+}
+
+/* ========================================
+   Result Popup Styles (Win/Loss/Tie)
+   ======================================== */
+
+.result-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.result-popup-container {
+  border-radius: 24px;
+  padding: 10px 60px;
+  text-align: center;
+  transform: scale(1);
+  max-width: 90vw;
+  min-width: 320px;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  background: #1a1a1a;
+  color: white;
+  border-width: 5px;
+  border-style: solid;
+  position: relative;
+}
+
+.result-popup-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 5px 10px;
+  line-height: 1;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  z-index: 10;
+}
+
+.result-popup-close:hover {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+.result-popup-container.win {
+  animation: winPulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-image: linear-gradient(to bottom, rgba(0, 85, 57, 0), #2EA52E, rgba(0, 85, 57, 0)) 1 100%;
+}
+
+.result-popup-container.loss {
+  animation: lossPulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-image: linear-gradient(to bottom, rgba(138, 40, 53, 0), #DF2835, rgba(138, 40, 53, 0)) 1 100%;
+}
+
+.result-popup-container.tie {
+  animation: tiePulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-image: linear-gradient(to bottom, rgba(0, 38, 148, 0), #329EDE, rgba(0, 38, 148, 0)) 1 100%;
+}
+
+.result-popup-main-text {
+  font-size: 92px;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  margin-bottom: 0;
+  font-family: var(--font-family);
+  letter-spacing: 4px;
+  animation: titlePopUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.result-popup-prices {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  font-family: var(--font-family);
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: inline-block; 
+}
+
+/* Game Results Section */
+.result-popup-game-results {
+  margin: 10px 0;
+  padding: 10px 0;
+}
+
+.game-results-title {
+  font-size: 25px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  font-family: var(--font-family);
+}
+
+.game-results-candles {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 30px;
+}
+
+.result-candle-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.result-candle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ccc;
+  font-family: var(--font-family);
+}
+
+.result-candle {
+  width: 50px;
+  height: 100px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-candle .candle-bar {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.candle-wick-top,
+.candle-wick-bottom {
+  width: 5px;
+  height: 15%;
+  background: currentColor;
+}
+
+.candle-body {
+  width: 70%;
+  height: 90%;
+  border-radius: 4px;
+  position: relative;
+}
+
+/* Up candle - Green */
+.result-candle.up {
+  color: #00ff88;
+}
+
+.result-candle.up .candle-body {
+  background: linear-gradient(180deg, #00ff88 0%, #00cc66 100%);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+}
+
+/* Down candle - Red */
+.result-candle.down {
+  color: #ff4444;
+}
+
+.result-candle.down .candle-body {
+  background: linear-gradient(180deg, #ff4444 0%, #cc0000 100%);
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
+}
+
+/* Even candle - Gray */
+.result-candle.even {
+  color: #888;
+}
+
+.result-candle.even .candle-body {
+  background: linear-gradient(180deg, #888 0%, #555 100%);
+  box-shadow: 0 0 20px rgba(136, 136, 136, 0.6);
+  border: 1px solid #888;
+}
+
+.result-popup-subtitle {
+  font-size: 24px;
+  font-weight: 600;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+  font-family: var(--font-family);
+  
+}
+
+.result-popup-subtitle.win {
+  color: var(--color-success);
+}
+
+.result-popup-subtitle.loss {
+  color: var(--text-primary);
+}
+
+.result-popup-subtitle.tie {
+  color: var(--color-info);
+}
+
+/* Share Section - Only for Win */
+.result-popup-share {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.share-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #ccc;
+  font-family: var(--font-family);
+  margin: 0;
+}
+
+.share-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.share-btn {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.share-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.share-btn.discord {
+  color: #5865F2;
+}
+
+.share-btn.discord:hover {
+  background: #5865F2;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
+}
+
+.share-btn.twitter {
+  color: #1DA1F2;
+}
+
+.share-btn.twitter:hover {
+  background: #1DA1F2;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(29, 161, 242, 0.4);
+}
+
+.share-btn.telegram {
+  color: #0088cc;
+}
+
+.share-btn.telegram:hover {
+  background: #0088cc;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4);
+}
+
+.result-popup-subtitle.tie {
+  color: var(--color-info);
+}
+
+.result-popup-amount {
+  font-size: 58px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-family);
+  padding: 15px 60px;
+  margin: 0 -60px;
+  width: calc(100% + 120px);
+  display: block;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Win amount - Green gradient */
+.result-popup-container.win .result-popup-amount {
+  background: linear-gradient(90deg, #005539 0%, #2EA52E 50%, #005539 100%);
+  border-top: 1px solid rgba(46, 165, 46, 0.3);
+  border-bottom: 1px solid rgba(46, 165, 46, 0.3);
+}
+
+/* Loss amount - Red gradient */
+.result-popup-container.loss .result-popup-amount {
+  background: linear-gradient(90deg, #8A2835 0%, #DF2835 50%, #8A2835 100%);
+  border-top: 1px solid rgba(223, 40, 53, 0.3);
+  border-bottom: 1px solid rgba(223, 40, 53, 0.3);
+}
+
+/* Tie/Even amount - Blue gradient */
+.result-popup-container.tie .result-popup-amount {
+  background: linear-gradient(90deg, #002694 0%, #329EDE 50%, #002694 100%);
+  border-top: 1px solid rgba(50, 158, 222, 0.3);
+  border-bottom: 1px solid rgba(50, 158, 222, 0.3);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+/* Popup Animations */
+@keyframes winPulse {
+  0% {
+    transform: scale(0.85) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03) translateZ(0);
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes lossPulse {
+  0% {
+    transform: scale(0.85) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03) translateZ(0);
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes tiePulse {
+  0% {
+    transform: scale(0.85) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03) translateZ(0);
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+/* Title Pop-up Animation - Small to Big to Normal */
+@keyframes titlePopUp {
+  0% {
+    transform: scale(0.5) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.55) translateZ(0);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.97) translateZ(0);
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+
+/* ========================================
+   Chart Branding (Binance) - Inside SVG
+   ======================================== */
+
+.chart-branding-text {
+  font-size: 9px;
+  fill: var(--text-secondary);
+  font-family: var(--font-family);
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+.chart-branding-logo {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  fill: #F3BA2F;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
+
+/* ========================================
+   MEMBER AUTHENTICATION (Game Engine)
+   ======================================== */
+
+.btc-member-auth {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-radius: 8px;
+  background-color: var(--bg-panel);
+  padding: 6px; 
+}
+
+.btc-member-auth-input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #2d2d2d;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 13px;
+  width: 120px;
+  font-family: monospace;
+}
+
+.btc-member-auth-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btc-member-auth-button {
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btc-member-auth-button:not(:disabled) {
+  background: var(--color-binance);
+  color: #000;
+}
+
+.btc-member-auth-button:disabled {
+  background: var(--color-success);
+  color: #fff;
+  cursor: default;
+  opacity: 0.8;
+}
+
+/* ========================================
+   GAME ENGINE BETTING BUTTONS (AU/SU/SD/AD)
+   ======================================== */
+
+.bet-button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bet-button-helper-text {
+  font-size: 10px;
+  display: block;
+  margin-top: 2px;
+}
+
+.bet-button-disabled {
+  opacity: 0.5;
+}
+
+/* Test buttons container */
+.test-buttons-container {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.test-button-win {
+  padding: 8px 16px;
+  background: #10B981;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.test-button-lose {
+  padding: 8px 16px;
+  background: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* TradingView container */
+.tradingview-widget-container {
+  display: flex;
+  justify-content: center;
+}
+
+.tradingview-iframe {
+  width: 96%;
+  height: 350px;
+  border: none;
+  border-radius: 8px;
+}
+
+/* Amount input container */
+.amount-input-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.amount-input-label-container {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.amount-input-label {
+  color: #999;
+  font-size: 12px;
+  font-family: var(--font-family);
+  white-space: nowrap;
+}
+
+.amount-input-divider {
+  width: 1px;
+  height: 14px;
+  background-color: #555;
+  opacity: 0.7;
+}
+
+/* Waiting for price message */
+.waiting-for-price {
+  color: #fff;
+  padding: 32px;
+}
+
+/* ========================================
+   RESULT HISTORY
+   ======================================== */
+
+.btc-result-history-list {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.btc-result-history-item {
+  padding: 8px 12px;
+  color: #cccccc;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.btc-result-history-item:not(:last-child) {
+  border-bottom: 1px solid #333;
+}
+
+.btc-result-history-badge {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+.btc-result-history-badge.up {
+  background-color: #4CAF50;
+}
+
+.btc-result-history-badge.down {
+  background-color: #f44336;
+}
+
+.btc-result-history-badge.even {
+  background-color: #76a8e5;
+}
+
+/* ========================================
+   INSURANCE BADGES
+   ======================================== */
+
+.insurance-badges {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  pointer-events: auto;
+  will-change: transform, opacity;
+}
+
+.insurance-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(0, 173, 98, 0.25);
+  border: 1px solid var(--color-up);
+  animation: slideInCenter 0.3s ease-out forwards;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  min-width: 180px;
+  max-width: 300px;
+  will-change: transform, opacity;
+  transition: opacity 0.2s ease-out;
+}
+
+.insurance-badge.section-1 {
+  background: rgba(0, 173, 98, 0.2);
+  border-color: var(--color-up);
+}
+
+.insurance-badge.section-2 {
+  background: rgba(246, 235, 20, 0.25);
+  border-color: var(--color-warning);
+}
+
+.insurance-icon {
+  width: 18px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.insurance-badge.purchased {
+  min-width: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.insurance-badge.purchased .insurance-icon {
+  width: 35px;
+  height: auto;
+}
+
+.insurance-text {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  white-space: nowrap;
+  flex: 1;
+}
+
+.insurance-buy-btn {
+  background: var(--color-up);
+  color: #fff;
+  border: none;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.insurance-buy-btn:hover {
+  background: var(--color-up-hover);
+  transform: scale(1.05);
+}
+
+.insurance-buy-btn:active {
+  transform: scale(0.95);
+}
+
+.insurance-badge.section-2 .insurance-buy-btn {
+  background: var(--color-warning);
+  color: #000;
+}
+
+.insurance-badge.section-2 .insurance-buy-btn:hover {
+  background: var(--color-warning-light);
+}
+
+.insurance-status {
+  color: var(--color-success);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.insurance-badge.purchased .insurance-icon {
+  filter: brightness(1);
+}
+
+@keyframes slideInCenter {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   INSURANCE STATUS INDICATORS (Timer Area)
+   ======================================== */
+
+.btc-insurance-indicators {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 0 16px;
+}
+
+.btc-insurance-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  border: 1px solid;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.btc-insurance-indicator.round-1 {
+  background: rgba(0, 173, 98, 0.15);
+  border-color: var(--color-up);
+  color: var(--color-up);
+}
+
+.btc-insurance-indicator.round-2 {
+  background: rgba(246, 235, 20, 0.15);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.btc-insurance-indicator .insurance-shield {
+  font-size: 12px;
+}
+
+.btc-insurance-indicator .insurance-label {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+    opacity: 0.9;
+  }
+  50% {
+    box-shadow: 0 0 15px currentColor;
+    opacity: 1;
+  }
 }

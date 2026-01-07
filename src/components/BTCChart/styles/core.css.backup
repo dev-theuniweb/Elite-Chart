@@ -1,0 +1,1611 @@
+/* ===================================================
+   CORE STYLES - Desktop & Common Components
+   
+   ⚠️ DO NOT EDIT COLORS/SIZES DIRECTLY!
+   Edit theme.css to change colors and sizes.
+   This file uses CSS variables from theme.css
+   =================================================== */
+
+/* src/components/BTCChart.css */
+
+/* Chart SVG wrapper - spacing between price and chart (desktop) */
+.btc-chart-svg-wrapper {
+  margin-top: 50px;              /* Desktop: keep original 50px spacing */
+}
+
+.btc-chart-wrapper {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btc-chart-container {
+  background-color: var(--bg-panel);
+  border-radius: 8px;
+  padding: 16px 0 24px 0; /* top, right, bottom, left */
+  width: 100%;
+  max-width: 920px;
+  height:485px;
+  /*display: flex;*/
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
+  position: relative;
+  box-sizing: border-box; /* Added for consistent box model */
+}
+
+/* Connection status - small indicator in top right */
+.btc-chart-container .connection-status {
+  order: 2;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btc-chart-container .connection-status.connected {
+  background: rgba(76, 175, 80, 0.9);
+}
+
+.btc-chart-container .connection-status.fallback {
+  background: rgba(255, 193, 7, 0.9);
+}
+
+.btc-chart-container .connection-status.connecting {
+  background: rgba(33, 150, 243, 0.9);
+}
+
+.btc-chart-container .connection-status.error {
+  background: rgba(244, 67, 54, 0.9);
+}
+
+.btc-chart-container .connection-status .status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.btc-chart-container .connection-status .status-indicator.connecting {
+  animation: pulse 1.5s infinite;
+}
+
+/* Timeframe Controls */
+.btc-timeframe-controls {
+  position: absolute;
+  top: 15px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background-color: rgba(26, 26, 26, 0.9);
+  border-radius: 6px;
+  border: 1px solid var(--bg-hover);
+  z-index: 10;
+}
+
+.btc-timeframe-label {
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.btc-timeframe-button {
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: none;
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform:lowercase;
+  width: 45px;
+  text-align: center;
+  min-width: 28px;
+}
+
+.btc-timeframe-button.active {
+  background-color: var(--color-accent);
+  color: var(--bg-main);
+}
+
+.btc-timeframe-button:hover {
+  background-color: var(--border-color-hover);
+}
+
+.btc-timeframe-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.btc-timeframe-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(246, 235, 20, 0.5);
+}
+
+.btc-timeframe-button.active:hover {
+  background-color: var(--color-accent);
+}
+
+.btc-timeframe-button.active:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: var(--color-accent);
+  color: var(--bg-main);
+}
+
+/* Battle Period Selection Panel */
+.btc-battle-period-container {
+  transition: all 0.3s ease;
+}
+
+.btc-battle-period-container button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.btc-battle-period-container button:active {
+  transform: scale(0.98);
+}
+
+/* Battle Timer Animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.btc-price {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  background: transparent;
+  font-size: 14px;
+  font-family: monospace;
+  color: var(--text-glow-up);
+}
+
+.btc-price span {
+  transition: color 0.3s ease;
+}
+
+.btc-price > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@keyframes fadePulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modal animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal base styles for better cross-device compatibility */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+}
+
+.modal-content {
+  background-color: var(--bg-section) !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--bg-hover) !important;
+  position: relative !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.btc-direction {
+  font-weight: bold;
+  display: inline-block;
+  animation: fadePulse 0.6s ease-in-out;
+}
+
+.btc-direction.up {
+  text-shadow: 0 0 5px var(--text-glow-up)aa;
+}
+
+.btc-direction.down {
+  text-shadow: 0 0 5px var(--text-glow-down)aa;
+}
+
+
+.btc-alert {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: var(--color-danger);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: bold;
+  animation: glowAlert 1s ease-in-out;
+}
+
+@keyframes glowAlert {
+  0% {
+    box-shadow: 0 0 0px var(--color-danger);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 12px var(--color-danger);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 0px var(--color-danger);
+    opacity: 0.9;
+  }
+}
+
+text {
+  dominant-baseline: middle;
+}
+
+/* Direction Colors */
+.up {
+  color: var(--color-up-glow);
+}
+
+.down {
+  color: var(--color-down-glow);
+}
+
+
+/* Value & Direction Styling */
+.btc-value {
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.btc-direction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+}
+
+.btc-arrow {
+  font-size: 17px;
+  padding-bottom: 3px;
+}
+
+/* Arrow indicators for UP/DOWN */
+.btc-arrow-up,
+.btc-arrow-down {
+  margin-right: 5px;
+  margin-left: 8px;
+}
+
+.btc-arrow-even {
+  margin-left: 8px;
+}
+
+.btc-label {
+  font-size: 25px;
+}
+
+/* Bitcoin icon styling */
+.btc-icon {
+    width: 35px;
+    height: 35px;
+    vertical-align: middle;
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+}
+
+.btc-usdt{
+    color: var(--text-secondary); 
+    font-weight: bold; 
+    font-size: 25px;
+    margin-right: 2px;
+}
+
+/* Chart SVG: make sure it fills the container */
+.btc-chart-container svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Line style (stroke) */
+.btc-chart-container path[stroke="var(--color-accent)"] {
+  filter: drop-shadow(0 0 6px var(--color-accent)aa);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Gradient area style */
+.btc-chart-container path[fill^="url"] {
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+/* Glowing dot animation (optional extra glow) */
+.btc-chart-container circle {
+  filter: drop-shadow(0 0 8px var(--color-accent)cc);
+}
+
+/* Floating price label */
+.btc-price {
+  position: absolute;
+  top: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 1.1rem;
+  z-index: 2;
+  border-radius: 8px;
+  padding: 8px 16px 8px 6px;
+}
+
+/* Y-axis label padding */
+.btc-y-axis-label {
+  right: 0;
+  padding-left: 0;   /* Space from the left edge */
+  padding-right: 0;  /* Space from the chart line */
+  font-size: 13px;
+  fill: var(--text-secondary);       /* For SVG <text> elements */
+  alignment-baseline: middle;
+}
+
+.btc-y-axis {
+  position: absolute;
+  right: 0;         /* stick to the right */
+  top: 0;
+  height: 100%;
+  width: 100%;
+  padding-right: 0px; /* adjust as needed */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.btc-oc {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-family);
+  font-size: 15px;
+  color: var(--text-primary);
+  gap: 24px; /* space between open/close */
+}
+
+.btc-oc-label {
+  background: var(--color-warning-alt);
+  border-radius: 5px;
+  padding: 6px 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btc-oc-close {
+  margin-left: 8px;
+  background: rgba(255,255,255,0.10);
+}
+
+.btc-oc-close-up {
+  background: var(--color-up-glow)!important; /* red */
+  color: var(--text-primary) !important;
+}
+.btc-oc-close-down {
+  background: var(--color-down-glow) !important; /* green */
+  color: var(--text-primary) !important;
+}
+.btc-oc-close-same {
+  background: var(--color-warning-alt) !important; /* orange */
+  color: var(--text-primary) !important;
+}
+
+/* Bottom Hostory Price data*/
+.btc-result-history-container {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  z-index: 100;
+  background: var(--bg-modal);
+  color: var(--text-modal);
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  min-width: 420px;
+  min-height: 20px;
+  text-align: left;
+  box-shadow: 0 2px 2px var(--bg-main)6;
+  transition: background 0.2s;
+  max-width: 90%;
+}
+
+.btc-result-history-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Add this to push arrow to right */
+  gap: 8px;
+}
+
+.btc-result-history-list {
+  margin-top: 10px; /* Add space below header */
+  display: flex;
+  flex-direction: column; /* Ensure dropdown opens downward */
+  gap: 6px;
+}
+
+.btc-result-history-item {
+  color: var(--text-primary);
+}
+
+.btc-result-history-trend-up {
+  color: var(--color-up-glow);
+  font-weight: bold;
+}
+
+.btc-result-history-trend-down {
+  color: var(--color-down-glow);
+  font-weight: bold;
+}
+
+.btc-result-history-trend-even {
+  color: var(--color-info);
+  font-weight: bold;
+}
+
+.btc-result-history-arrow {
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.btc-result-history-chevron {
+  font-size: 13px;
+  font-weight: bold;
+  margin-right: -2px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.btc-result-history-chevron.open {
+  transform: rotate(180deg);
+}
+
+.btc-dropdown-arrow {
+  display: flex;
+  align-items: center;
+  margin-left: 0;         /* Remove left margin */
+  font-size: 18px;        /* Smaller size */
+  transition: transform 0.2s;
+  color: var(--bg-main);
+}
+
+.btc-dropdown-arrow svg {
+  width: 20px;            /* Smaller SVG */
+  height: 20px;
+  color: var(--bg-main);
+}
+
+.btc-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.btc-value.up, .btc-label.up {
+  color: var(--color-up-glow);
+  font-weight: bold;
+}
+.btc-value.down, .btc-label.down {
+  color: var(--color-down-glow);
+  font-weight: bold;
+}
+.btc-value.even, .btc-label.even {
+  color: var(--color-info);
+  font-weight: bold;
+}
+/* END Bottom Hostory Price data*/
+
+/* Custom Arrow-Shaped Buttons */
+.button-container {
+  display: flex;
+  gap: 2px;
+}
+
+.button-half {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+}
+
+.button-half:focus,
+.button-half:active {
+  outline: none !important;
+}
+
+.button-half:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+.up-half {
+  width: 120px;
+  background-color: var(--color-up);
+  border-radius: 16px 0 0 16px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+}
+
+.up-half:focus,
+.up-half:active {
+  background-color: var(--color-up) !important;
+}
+
+.down-half {
+  width: 120px;
+  background-color: var(--color-down);
+  border-radius: 0 16px 16px 0;
+  clip-path: polygon(15px 0, 100% 0, 100% 100%, 0 100%);
+  margin-left: -10px;
+}
+
+.down-half:focus,
+.down-half:active {
+  background-color: var(--color-down) !important;
+}
+
+.up-half:hover {
+  background-color: var(--color-up-hover);
+}
+
+.down-half:hover {
+  background-color: var(--color-down-light);
+}
+
+.up-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.down-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Hide number input arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox and modern browsers */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ========================================
+   BATTLE PERIOD AND BETTING INTERFACE STYLES (DESKTOP)
+   ⚠️ Mobile overrides are in mobile.css
+   ======================================== */
+
+/* Timer Container */
+.btc-timer-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px auto 4px auto;
+  max-width: 900px;
+  width: calc(100% - 32px);
+}
+
+.btc-timer-display {
+  position: relative;
+  width: 100%;
+  height: 13px;
+  border-radius: 20px;
+  background-color: var(--bg-input);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btc-timer-progress {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.btc-timer-progress.can-bet {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-warning));
+}
+
+.btc-timer-progress.blocked {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-warning));
+}
+
+.btc-timer-progress.bet-up-progress {
+  background: linear-gradient(90deg, var(--color-up), var(--color-up-light)) !important;
+}
+
+.btc-timer-progress.bet-down-progress {
+  background: linear-gradient(90deg, var(--color-down), var(--color-down-light)) !important;
+}
+
+.btc-timer-progress.warning {
+  background: linear-gradient(90deg, var(--color-warning-alt), var(--color-warning-light));
+}
+
+.btc-timer-text {
+  position: relative;
+  z-index: 2;
+  font-size: 10px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.btc-timer-text.ready-state {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.btc-timer-text.bet-up {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.btc-timer-text.bet-down {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.btc-timer-display.bet-up-active {
+  background-color: var(--color-up);
+  height: 13px;
+}
+
+.btc-timer-display.bet-down-active {
+  background-color: var(--color-down);
+  height: 13px;
+}
+
+.btc-timer-display.can-bet,
+.btc-timer-display.blocked {
+  background-color: var(--bg-input);
+}
+
+.btc-timer-dot {
+  display: none;
+}
+
+/* Control Row Layout */
+.btc-control-row {
+  display: flex;
+  gap: 12px;
+  margin: 12px auto 12px auto;
+  max-width:900px;
+  width: calc(100% - 32px);
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Battle Period Container */
+.btc-battle-period-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  flex: 0 0 auto;
+  width: auto;
+  order: 2;
+}
+
+.btc-battle-period-label {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  white-space: nowrap;
+  margin-right: 0px;
+}
+
+.btc-period-button {
+  padding: 3px 20px 3px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  text-transform:lowercase;
+}
+
+.btc-trends-timeframe{
+  text-transform:lowercase;
+}
+
+.btc-period-button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color-hover);
+}
+
+.btc-period-button.active {
+  border: 1px solid var(--color-up);
+  background-color: var(--color-up);
+  color: var(--bg-main);
+  font-weight: 700;
+}
+
+.btc-period-button.active:hover {
+  background-color: var(--color-up);
+  border-color: var(--color-up);
+}
+
+.btc-period-button.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btc-period-button.disabled:hover {
+  transform: none !important;
+}
+
+.btc-period-button.active.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: var(--color-up) !important;
+  border-color: var(--color-up) !important;
+  color: var(--bg-main) !important;
+}
+
+.btc-period-button.active.disabled:hover {
+  background-color: var(--color-up) !important;
+  border-color: var(--color-up) !important;
+  transform: none !important;
+}
+
+/* Betting Interface */
+.btc-betting-interface {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 0 10px 15px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  gap: 12px;
+  flex: 1 1 auto;
+  order: 1;
+}
+
+.btc-balance-display {
+  display: flex;
+  align-items: center;
+  min-width: auto;
+}
+
+.btc-balance-text {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  white-space: nowrap;
+}
+
+/* Trends Details Button - Desktop (Arrow Only) */
+.btc-trends-details-button {
+  margin-left: auto;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  white-space: nowrap;
+  width: 30px;
+  height: 30px;
+  text-indent: -9999px;
+  position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.btc-trends-details-button:hover {
+  color: #ffffff;
+}
+
+.btc-trends-details-button::before {
+  content: '›';
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  text-indent: 0;
+  font-size: 28px;
+  color: inherit;
+  line-height: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btc-amount-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.btc-amount-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btc-amount-input {
+  width: 125px;
+  padding: 6px 10px 6px 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: right;
+  outline: none;
+  height: 28px;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  font-weight: 600;
+}
+
+.btc-amount-label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-primary);
+  padding: 2px 6px 2px 0px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+  background-color: var(--bg-input);
+}
+
+.button-container .btc-period-button.disabled,
+.button-container .button-half.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   TRENDS DISPLAY STYLES (DESKTOP)
+   ⚠️ Mobile overrides are in mobile.css
+   ======================================== */
+
+.btc-trends-full-container {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 4px auto;
+  max-width: 100%;
+  width: calc(100% - 58px);
+}
+
+.btc-trends-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--bg-section);
+  border-radius: 6px;
+  width: 100%;
+  position: relative;
+}
+
+.btc-trends-label {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  white-space: nowrap;
+  margin-left: 20px;
+}
+
+.btc-trend-button {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 35px;
+  text-align: center;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.btc-trend-button.up {
+  background-color: var(--color-up);
+}
+
+.btc-trend-button.down {
+  background-color: #f44336;
+}
+
+.btc-trend-button.draw {
+  background-color: var(--color-info);
+}
+
+.btc-trend-button.latest {
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.btc-trend-button.latest.down {
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+.btc-trend-button.latest.draw {
+  box-shadow: 0 0 8px rgba(118, 168, 229, 0.6);
+}
+
+/* Bet Price Indicator */
+.bet-price-indicator line {
+  stroke: var(--color-warning);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 1;
+}
+
+.bet-price-indicator rect {
+  fill: var(--color-warning);
+  rx: 4;
+  opacity: 1;
+  width: 75px;
+  height: 18px;
+}
+
+.bet-price-indicator text {
+  fill: var(--text-dark);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  text-anchor: middle;
+  dominant-baseline: central;
+  alignment-baseline: middle;
+  text-align: center;
+}
+
+/* Latest Point (yellow dot) with pulsing animation */
+.btc-latest-point {
+  animation: pointPulse 2s ease-in-out infinite;
+  /*filter: drop-shadow(0 0 8px rgba(246, 235, 20, 1)); glowing effect*/
+}
+
+@keyframes pointPulse {
+  0%, 100% {
+    opacity: 1;
+    r: 4;
+  }
+  50% {
+    opacity: 1;
+    r: 5;
+  }
+}
+
+/* Current Price Label (floating price on chart) */
+.btc-current-price-label {
+  /* Container for the entire price label group */
+  pointer-events: none; /* Prevent mouse interaction */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.btc-price-label-rect {
+  transition: fill 0.3s ease;
+  /* Add shadow effect for better visibility */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.btc-price-label-rect.up {
+  fill: #5acc6d;
+}
+
+.btc-price-label-rect.down {
+  fill: #ff4c3e;
+}
+
+.btc-price-label-rect.even {
+  fill: #76a8e5;
+}
+
+.btc-price-label-text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  /* Text shadow for better readability */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  /* Ensure crisp rendering */
+  shape-rendering: crispEdges;
+}
+
+/* Center Connection Status Message */
+.center-connection-status {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 25%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  color: white;
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: center;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.center-connection-status.connecting {
+  background: rgba(244, 67, 54, 0.75); /* Red for connecting */
+}
+
+.center-connection-status.connected {
+  background: rgba(77, 175, 80, 0.75); /* Green for connected */
+}
+
+.center-connection-status.waiting {
+  background: rgba(255, 193, 7, 0.95); /* Yellow/orange for waiting */
+}
+
+
+/* ========================================
+   Trading History Modal Styles
+   ======================================== */
+
+/* Modal Overlay */
+.trading-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Container */
+.trading-modal-container {
+  background-color: #1a1a1a;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  border: 1px solid #333;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Modal Header */
+.trading-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #333;
+}
+
+.trading-modal-title {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--font-family);
+}
+
+/* Close Button */
+.trading-modal-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.trading-modal-close:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Modal Content */
+.trading-modal-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Custom Scrollbar */
+.trading-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trading-modal-content::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+.trading-modal-content::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.trading-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Summary Stats Grid */
+.trading-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #252525;
+  border-radius: 12px;
+}
+
+.trading-stat-item {
+  text-align: center;
+}
+
+.trading-stat-label {
+  color: #888;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.trading-stat-value {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.trading-stat-value.win {
+  color: #4CAF50;
+}
+
+.trading-stat-value.loss {
+  color: #f44336;
+}
+
+.trading-stat-value.tie {
+  color: #76a8e5;
+}
+
+.trading-stat-value.positive {
+  color: #4CAF50;
+}
+
+.trading-stat-value.negative {
+  color: #f44336;
+}
+
+/* Bet History Item */
+.bet-history-item {
+  padding: 16px;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #333;
+  transition: all 0.2s ease;
+}
+
+.bet-history-item[data-even="true"] {
+  background-color: #222;
+}
+
+.bet-history-item:hover {
+  background-color: #2a2a2a !important;
+}
+
+/* Bet Header Row */
+.bet-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bet-timestamp {
+  color: #cccccc;
+  font-size: 14px;
+  font-family: var(--font-family);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bet-badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.bet-timeframe-badge {
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #555;
+}
+
+.bet-result-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.bet-result-badge.win {
+  background-color: #4CAF50;
+}
+
+.bet-result-badge.tie {
+  background-color: #76a8e5;
+}
+
+.bet-result-badge.loss {
+  background-color: #f44336;
+}
+
+/* Bet Details Row */
+.bet-details-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.bet-info {
+  color: #ffffff;
+  font-size: 16px;
+  font-family: var(--font-family);
+  flex: 1;
+}
+
+.bet-pnl {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bet-pnl.positive {
+  color: #4CAF50;
+}
+
+.bet-pnl.negative {
+  color: #f44336;
+}
+
+.bet-pnl.neutral {
+  color: #888;
+}
+
+/* Empty State */
+.trading-empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+}
+
+.trading-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.trading-empty-title {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.trading-empty-subtitle {
+  font-size: 14px;
+}
+
+
+/* ========================================
+   Result Popup Styles (Win/Loss/Tie)
+   ======================================== */
+
+.result-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.result-popup-container {
+  border-radius: 24px;
+  padding: 40px 60px;
+  text-align: center;
+  transform: scale(1);
+  max-width: 90vw;
+  min-width: 320px;
+}
+
+.result-popup-container.win {
+  background-color: var(--bg-popup);
+  box-shadow: 0 10px 30px rgba(72, 205, 92, 0.4), 0 0 20px rgba(52, 178, 70, 0.2);
+  animation: winPulse 0.6s ease-out;
+}
+
+.result-popup-container.loss {
+  background-color: var(--bg-popup);
+  box-shadow: 0 10px 30px rgba(255, 46, 31, 0.4), 0 0 100px rgba(244, 67, 54, 0.2);
+  animation: lossPulse 0.6s ease-out;
+}
+
+.result-popup-container.tie {
+  background-color: var(--bg-popup);
+  box-shadow: 0 10px 30px rgba(118, 168, 229, 0.4), 0 0 20px rgba(118, 168, 229, 0.2);
+  animation: tiePulse 0.6s ease-out;
+}
+
+.result-popup-main-text {
+  font-size: 92px;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  margin-bottom: 10px;
+  font-family: var(--font-family);
+  letter-spacing: 4px;
+}
+
+.result-popup-prices {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  font-family: var(--font-family);
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.result-popup-subtitle {
+  font-size: 24px;
+  font-weight: 600;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 30px;
+  font-family: var(--font-family);
+}
+
+.result-popup-subtitle.win {
+  color: var(--color-success);
+}
+
+.result-popup-subtitle.loss {
+  color: var(--text-primary);
+}
+
+.result-popup-subtitle.tie {
+  color: var(--color-info);
+}
+
+.result-popup-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-family);
+  background: var(--bg-amount-label);
+  padding: 15px 25px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* Popup Animations */
+@keyframes winPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes lossPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tiePulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+/* ========================================
+   Chart Branding (Binance) - Inside SVG
+   ======================================== */
+
+.chart-branding-text {
+  font-size: 9px;
+  fill: var(--text-secondary);
+  font-family: var(--font-family);
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+.chart-branding-logo {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-family);
+  fill: #F3BA2F;
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}

@@ -1,0 +1,1191 @@
+/* ===================================================
+   MOBILE & RESPONSIVE STYLES
+   
+   ⚠️ DO NOT EDIT COLORS/SIZES DIRECTLY!
+   Edit theme.css to change colors and sizes.
+   This file uses CSS variables from theme.css
+   =================================================== */
+
+/* ========== COMPREHENSIVE MOBILE STYLES ========== */
+@media (max-width: 768px) {
+  /* Chart SVG wrapper - minimal spacing on mobile */
+  .btc-chart-svg-wrapper {
+    margin-top: 20px !important;      /* ✅ Minimal gap for mobile */
+  }
+
+  /* Main container adjustments */
+  .btc-chart-container {
+    height: auto;
+    min-height: 100vh;
+    max-width: 100%;
+    margin: 0;
+    padding: 8px 0;
+    border-radius: 0;
+    display: flex !important;        /* ✅ CRITICAL: Enable flexbox for order property */
+    flex-direction: column !important;
+    justify-content: flex-start;
+  }
+
+  /* Connection status - move to top right corner and make smaller */
+  .btc-chart-container > div:first-child {
+    order: 1;
+    position: absolute !important;
+    top: 5px !important;
+    right: 5px !important;
+    margin: 0 !important;
+    padding: 4px 8px !important;
+    font-size: 8px !important;
+    border-radius: 12px !important;
+    z-index: 10;
+  }
+
+  .btc-chart-container > div:first-child > div:first-child {
+    width: 6px !important;
+    height: 6px !important;
+  }
+  
+  /* ✅ Timeframe controls - Same row as percentage (right side) */
+.btc-timeframe-controls {
+  position: absolute !important;     /* ✅ Absolute to stay on same row */
+  top: 60px !important;              /* ✅ Align with percentage row (adjusted) */
+  right: 10px !important;
+  width: auto !important;
+  max-width: 160px !important;       /* Keep same compact size */
+  padding: 3px 4px !important;
+  gap: 2px !important;
+  background-color: rgba(26, 26, 26, 0.9) !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--bg-hover) !important;
+  z-index: 20 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.btc-timeframe-label {
+  font-size: 8px !important;         /* 🔧 Reduced from 9px */
+  margin-right: 3px !important;      /* 🔧 Reduced from 4px */
+  color: var(--text-primary) !important;
+}
+
+.btc-timeframe-button {
+  padding: 4px 3px 2px 3px!important;       /* 🔧 Reduced from 4px 8px */
+  font-size: 9px !important;         /* 🔧 Reduced from 10px */
+  min-width: 28px !important;        /* 🔧 Reduced from 34px */
+  width: 28px !important;            /* 🔧 Reduced from 34px */
+}
+
+  /* ✅ Price display - 2-ROW BINANCE STYLE */
+  .btc-price {
+    order: -10 !important;
+    position: relative !important;
+    width: 100% !important;
+    padding: 12px 16px 8px 45px !important;  /* ✅ Balanced padding */
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    background-color: transparent !important;
+    flex-shrink: 0 !important;
+    gap: 4px !important;                     /* ✅ Small gap between rows */
+  }
+  
+  /* Row 1 container: Icon + BTC + Price (without wrapping) */
+  .btc-price > div:first-child {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;        /* ✅ Allow wrapping to second row */
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  
+  /* BTC Icon - properly sized */
+  .btc-price .btc-icon {
+    width: 28px !important;
+    height: 28px !important;
+    margin-right: 4px !important;
+    order: 1 !important;
+  }
+  
+  /* BTC Text - LARGE (same size as price) */
+  .btc-price .btc-usdt {
+    font-size: 28px !important;        /* ✅ Same as price */
+    font-weight: 900 !important;       /* ✅ Bolder to match price */
+    margin-right: 12px !important;     /* ✅ Better spacing before price */
+    color: var(--text-primary) !important;
+    order: 2 !important;
+  }
+  
+  /* Price Value - LARGE, same row as Icon+BTC */
+  .btc-price .btc-value {
+    font-size: 28px !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.5px !important;
+    order: 3 !important;
+    flex: 1 1 auto !important;         /* ✅ Allow price to grow but stay on same row */
+  }
+  
+  /* Arrow + UP/DOWN label - Second row */
+  .btc-price .btc-label {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1 !important;
+    margin-left: 32px !important;      /* ✅ Align under BTC text */
+    order: 4 !important;
+    width: 100% !important;            /* ✅ Force to second row */
+  }
+  
+  /* Arrow icon in label */
+  .btc-price .btc-label span {
+    font-size: 12px !important;
+  }
+  
+  /* ✅ SVG container (chart) - place AFTER price */
+  .btc-chart-container > div[style*="marginTop"] {
+    order: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* Chart area adjustments - place after price */
+  .btc-chart-container > div:nth-child(2) {
+    order: 0 !important;              /* ✅ Chart comes after price (order: -10) */
+    margin-top: 0 !important;
+  }
+  
+  /* ✅ Timer container - place after chart */
+  .btc-timer-container {
+    order: 1 !important;
+  }
+  
+  /* ✅ Control row (battle timer buttons) - place after timer */
+  .btc-control-row {
+    order: 2 !important;
+  }
+  
+  /* ✅ Trends container - place at bottom */
+  .btc-trends-full-container {
+    order: 3 !important;
+  }
+
+  /* Bottom container - stack vertically on mobile */
+  .btc-bottom-container {
+    order: 4;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin: 12px auto 8px auto !important;
+    max-width: calc(100vw - 16px) !important;
+    width: calc(100vw - 16px) !important;
+    padding: 0 8px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    position: relative !important;
+    
+    /* Override JSX inline styles */
+    display: flex !important;
+  }
+
+  /* Trends container - full width and better spacing */
+  .btc-trends-container {
+    flex: 1 !important;
+    min-width: 100% !important;
+    width: 100% !important;
+    padding: 12px !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    
+    /* Override JSX inline styles */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Betting interface - mobile layout: balance+amount in row 1, buttons in row 2 */
+  .btc-betting-interface {
+    flex: 1 !important;
+    min-width: 100% !important;
+    width: 100% !important;
+    padding: 16px !important;
+    background: rgba(26, 26, 26, 0.95) !important;
+    border: 1px solid var(--border-color) !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    
+    /* Use CSS Grid for precise control */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 16px 12px !important;
+    align-items: center !important;
+  }
+
+  /* Balance display - first column, first row */
+  .btc-betting-interface > div:first-child {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    text-align: left !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    justify-self: start !important;
+  }
+
+  .btc-betting-interface > div:first-child span {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    white-space: nowrap !important;
+  }
+
+  /* Amount input - second column, first row */
+  .btc-betting-interface > div:nth-child(2) {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    width: auto !important;
+  }
+
+  .btc-betting-interface > div:nth-child(2) > div {
+    width: 180px !important;
+  }
+
+  .btc-betting-interface input[type="number"] {
+    width: 180px !important;
+    height: 12px !important;
+    font-size: 16px !important;
+    padding: 10px 10px 10px 75px !important;
+    background: rgba(42, 42, 42, 0.9) !important;
+    border: 1px solid var(--border-color-hover) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .btc-betting-interface input[type="number"]:focus {
+    border-color: var(--color-up) !important;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3) !important;
+  }
+
+  .btc-betting-interface input[type="number"] + div span {
+    font-size: 12px !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* Button container - spans both columns, second row */
+  .button-container {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    height: 60px !important;
+    max-width: 100px !important;
+    margin: 0 auto !important;
+    justify-self: center !important;
+  }
+
+  .button-half {
+    height: 60px !important;
+    font-size: 18px !important;
+    min-width: 140px !important;
+  }
+
+  .up-text, .down-text {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    letter-spacing: 2px !important;
+  }
+
+  /* Trends items - make them more touch-friendly */
+  .btc-trends-container > div:not(:first-child):not(:last-child) {
+    min-width: 42px !important;
+    padding: 6px 3px !important;
+    font-size: 11px !important;
+  }
+  
+  /* ✅ MOBILE: Hide all trends except the last 5 most recent */
+  .btc-trends-container .btc-trend-button:not(:nth-last-child(-n+6)) {
+    display: none !important;        /* Hide all except: Details button + last 5 trends */
+  }
+  
+  /* Make visible trends slightly larger for mobile */
+  .btc-trends-container .btc-trend-button {
+    min-width: 45px !important;      /* Wider for easier tapping */
+    padding: 8px 10px !important;    /* More padding */
+    font-size: 12px !important;      /* Bigger text */
+  }
+
+  /* Details button */
+  .btc-trends-container button {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+  }
+
+  /* Modal adjustments for mobile */
+  .btc-chart-container div[style*="position: fixed"] > div {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 10px;
+    max-height: 90vh !important;
+  }
+
+  /* Additional modal styling for better mobile support */
+  div[style*="position: fixed"][style*="z-index: 1000"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px !important;
+  }
+
+  div[style*="position: fixed"][style*="z-index: 1000"] > div {
+    width: 95% !important;
+    max-width: 95% !important;
+    max-height: 85vh !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    border-radius: 12px !important;
+    overflow-y: auto !important;
+  }
+
+  /* Modal header adjustments for mobile */
+  div[style*="position: fixed"] h2 {
+    font-size: 18px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Modal content scrolling for mobile */
+  div[style*="max-height: 60vh"] {
+    max-height: 50vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* SVG chart - make it responsive */
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .btc-chart-container {
+    padding: 4px;
+  }
+
+  .btc-price {
+    font-size: 14px;
+    padding: 8px 0;
+  }
+
+  /* Responsive Bitcoin icon for mobile */
+  .btc-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 2px;
+  }
+
+  .btc-betting-interface {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  .btc-betting-interface > div:first-child span {
+    font-size: 16px !important;
+  }
+
+  .button-container {
+    height: 40px !important;
+    max-width: 250px !important;
+    margin: 0 auto !important;
+    justify-self: center !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .button-half {
+    height: 40px !important;
+    font-size: 14px !important;
+    min-width: 185px !important;
+    width: 120px !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .up-text, .down-text {
+    font-size: 14px !important;
+    letter-spacing: 1px !important;
+  }
+
+  .btc-betting-interface input[type="number"] {
+    width: 180px !important;
+    height: 30px !important;
+    font-size: 14px !important;
+    padding: 10px 10px 10px 70px !important;
+  }
+
+  /* Container adjustments for very small screens */
+  .btc-bottom-container {
+    margin: 8px auto 4px auto !important;
+    max-width: calc(100vw - 16px) !important;
+    width: calc(100vw - 16px) !important;
+    padding: 0 8px !important;
+    gap: 8px !important;             /* ✅ Reduce gap for tighter layout */
+  }
+
+  .btc-trends-container {
+    padding: 10px 8px !important;    /* ✅ Better padding for mobile */
+    gap: 6px !important;             /* ✅ Tighter gap between trend buttons */
+    justify-content: center !important; /* ✅ Center align trends */
+  }
+
+  .btc-betting-interface {
+    padding: 12px !important;
+  }
+
+  /* Modal adjustments for very small screens (480px and below) */
+  div[style*="position: fixed"][style*="z-index: 1000"] {
+    padding: 5px !important;
+  }
+
+  div[style*="position: fixed"][style*="z-index: 1000"] > div {
+    width: 98% !important;
+    max-width: 98% !important;
+    max-height: 90vh !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Make modal header smaller on very small screens */
+  div[style*="position: fixed"] h2 {
+    font-size: 16px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* Reduce tab button sizes */
+  div[style*="position: fixed"] button {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Adjust modal content height for small screens */
+  div[style*="max-height: 60vh"] {
+    max-height: 45vh !important;
+  }
+
+}
+
+/* Audio Controls */
+
+/* Start Pop-Up windows Result Popup Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDelayed {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes winPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes lossPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive popup adjustments */
+@media (max-width: 768px) {
+  .result-popup-main-text {
+    font-size: 48px !important;
+  }
+  
+  .result-popup-subtitle {
+    font-size: 18px !important;
+  }
+  
+  .result-popup-amount {
+    font-size: 24px !important;
+  }
+}
+
+/* Result Popup Styles */
+.result-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.result-popup-container {
+  border-radius: 24px;
+  padding: 40px 60px;
+  text-align: center;
+  transform: scale(1);
+  max-width: 90vw;
+  min-width: 320px;
+}
+
+.result-popup-container.win {
+  background-color: var(--bg-popup);
+  box-shadow: 0 10px 30px rgba(72, 205, 92, 0.4), 0 0 20px rgba(52, 178, 70, 0.2);
+  animation: winPulse 0.6s ease-out;
+}
+
+.result-popup-container.loss {
+  background-color: var(--bg-popup);
+  box-shadow: 0 10px 30px rgba(255, 46, 31, 0.4), 0 0 100px rgba(244, 67, 54, 0.2);
+  animation: lossPulse 0.6s ease-out;
+}
+
+.result-popup-main-text {
+  font-size: 92px;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  margin-bottom: 10px;
+  font-family: system-ui, -apple-system, sans-serif;
+  letter-spacing: 4px;
+}
+
+.result-popup-prices {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  font-family: monospace;
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.result-popup-subtitle {
+  font-size: 24px;
+  font-weight: 600;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 30px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.result-popup-subtitle.win {
+  color: var(--color-success);
+}
+
+.result-popup-subtitle.loss {
+  color: var(--text-primary);
+}
+
+.result-popup-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+  font-family: monospace;
+  background: var(--bg-amount-label);
+  padding: 15px 25px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.result-popup-close-container {
+  margin-top: 30px;
+  opacity: 0;
+  animation: fadeInDelayed 0.5s ease-in 2s forwards;
+}
+
+.result-popup-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 25px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: system-ui, -apple-system, sans-serif;
+  backdrop-filter: blur(10px);
+}
+
+.result-popup-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* Center Connection Status Message Animation */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Center Connection Status Message */
+.center-connection-status {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  color: white;
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: center;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.center-connection-status.connecting {
+  background: rgba(244, 67, 54, 0.75); /* Red for connecting */
+}
+
+.center-connection-status.connected {
+  background: rgba(77, 175, 80, 0.75); /* Green for connected */
+}
+
+.center-connection-status.waiting {
+  background: rgba(255, 193, 7, 0.95); /* Yellow/orange for waiting */
+}
+
+/* ========================================
+   MOBILE OVERRIDES FOR BATTLE PERIOD AND BETTING
+   ⚠️ Desktop base styles are in core.css
+   ======================================== */
+
+@media (max-width: 768px) {
+  .btc-timer-container {
+
+/* ========================================
+   BATTLE PERIOD AND BETTING INTERFACE STYLES
+   ======================================== */
+
+/* Timer Container */
+.btc-timer-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px auto 4px auto;
+  max-width: 900px;
+  width: calc(100% - 32px);
+}
+
+.btc-timer-display {
+  position: relative;
+  width: 100%;
+  height: 13px;
+  border-radius: 20px;
+  background-color: var(--bg-input);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btc-timer-progress {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  border-radius: 18px;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.btc-timer-progress.can-bet {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-warning));
+}
+
+.btc-timer-progress.blocked {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-warning));
+}
+
+/* Progress bar colors for individual bets */
+.btc-timer-progress.bet-up-progress {
+  background: linear-gradient(90deg, var(--color-up), var(--color-up-light)) !important;
+}
+
+.btc-timer-progress.bet-down-progress {
+  background: linear-gradient(90deg, var(--color-down), var(--color-down-light)) !important;
+}
+
+.btc-timer-progress.warning {
+  background: linear-gradient(90deg, var(--color-warning-alt), var(--color-warning-light));
+}
+
+.btc-timer-text {
+  position: relative;
+  z-index: 2;
+  font-size: 10px;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Ready to bet state - black text color */
+.btc-timer-text.ready-state {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Bet UP state - white text for contrast against green */
+.btc-timer-text.bet-up {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Bet DOWN state - white text for contrast against red */
+.btc-timer-text.bet-down {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Timer display background colors for active bets */
+.btc-timer-display.bet-up-active {
+  background-color: var(--color-up);
+  height: 13px;
+}
+
+.btc-timer-display.bet-down-active {
+  background-color: var(--color-down);
+  height: 13px;
+}
+
+/* Bet UP state - white text for contrast against green */
+.btc-timer-text.bet-up {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Bet DOWN state - white text for contrast against red */
+.btc-timer-text.bet-down {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Timer display background colors for active bets */
+.btc-timer-display.bet-up-active {
+  background-color: var(--color-up);
+  height: 13px;
+}
+
+.btc-timer-display.bet-down-active {
+  background-color: var(--color-down);
+  height: 13px;
+}
+
+/* Remove old timer styles */
+.btc-timer-display.can-bet,
+.btc-timer-display.blocked {
+  background-color: var(--bg-input);
+}
+
+.btc-timer-dot {
+  display: none;
+}
+
+/* Control Row Layout */
+.btc-control-row {
+  display: flex;
+  gap: 6px;
+  margin: 10px auto 10px auto;
+  max-width: 900px;
+  width: calc(100% - 32px);
+  align-items: center;
+  justify-content: flex-start;
+  
+}
+
+/* Battle Period Container */
+.btc-battle-period-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 10px 16px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  flex: 0 0 auto;
+  width: 400px;
+}
+
+
+.btc-battle-period-label {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.btc-period-button {
+  padding: 2px 28px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 65px;
+  text-transform: uppercase;
+}
+
+.btc-period-button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color-hover);
+}
+
+.btc-period-button.active {
+  border: 1px solid var(--color-up);
+  background-color: var(--color-up);
+  color: var(--bg-main);
+  font-weight: 700;
+}
+
+.btc-period-button.active:hover {
+  background-color: var(--color-up);
+  border-color: var(--color-up);
+}
+
+.btc-period-button.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btc-period-button.disabled:hover {
+  transform: none !important;
+}
+
+/* Keep active button's green color even when disabled */
+.btc-period-button.active.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: var(--color-up) !important;
+  border-color: var(--color-up) !important;
+  color: var(--bg-main) !important;
+}
+
+.btc-period-button.active.disabled:hover {
+  background-color: var(--color-up) !important;
+  border-color: var(--color-up) !important;
+  transform: none !important;
+}
+
+/* Betting Interface */
+.btc-betting-interface {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: var(--bg-section);
+  border-radius: 8px;
+  gap: 8px;
+  flex: 1 1 auto;
+}
+
+.btc-balance-display {
+  display: flex;
+  align-items: center;
+  min-width: auto;
+}
+
+.btc-balance-text {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+}
+
+.btc-amount-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.btc-amount-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btc-amount-input {
+  width: 120px;
+  padding: 6px 6px 6px 55px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: right;
+  outline: none;
+  height: 28px;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  font-weight: 600;
+}
+
+.btc-amount-label {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Button Container and UP/DOWN Buttons */
+.button-container .btc-period-button.disabled,
+.button-container .button-half.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive Design for Battle Controls */
+@media (max-width: 768px) {
+  .btc-timer-container {
+    margin: 20px 0 10px 0 !important;        /* ✅ Remove side margins */
+    padding: 0 !important;       /* ✅ Add padding instead */
+    width: 100% !important;          /* ✅ Full screen width */
+    max-width: 100% !important;
+  }
+  
+  .btc-timer-display {
+    width: 100% !important;          /* ✅ Full width, not 280px */
+    max-width: 100% !important;
+    height: 10px !important;          /* ✅ Reduced from 36px to 8px */
+  }
+  
+  .btc-timer-text {
+    font-size: 12px !important;       /* ✅ Smaller text for thin bar */
+    font-weight: 600 !important;
+  }
+  
+  .btc-control-row {
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin: 4px 0 8px 0 !important;  /* ✅ Remove side margins */
+    padding: 0 8px !important;       /* ✅ Use padding for edges */
+    width: 100% !important;          /* ✅ Full width */
+    max-width: 100% !important;
+  }
+  
+  .btc-battle-period-container {
+    flex-wrap: wrap !important;
+    gap: 8px !important;             /* ✅ Better spacing between buttons */
+    padding: 10px 12px !important;
+    justify-content: center !important;  /* ✅ Center align buttons */
+    width: 100% !important;          /* ✅ Full width */
+    max-width: 100% !important;
+  }
+  
+  .btc-battle-period-label {
+    font-size: 13px !important;
+    margin-right: 6px !important;
+    width: 100% !important;          /* ✅ Full width label */
+    text-align: center !important;   /* ✅ Center label */
+  }
+  
+  .btc-period-button {
+    padding: 8px 20px !important;    /* ✅ Larger for easier tapping */
+    font-size: 13px !important;      /* ✅ Bigger text */
+    min-width: 80px !important;      /* ✅ Wider buttons */
+    font-weight: 600 !important;
+  }
+  
+  .btc-betting-interface {
+    width: 100%;
+    max-width: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 12px;
+  }
+  
+  .btc-amount-input {
+    width: 90px;
+    padding: 5px 5px 5px 50px;
+    height: 24px;
+    font-size: 12px;
+  }
+  
+  .btc-amount-label {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+  
+  .btc-balance-text {
+    font-size: 12px;
+  }
+  
+  .btc-timer-container {
+    margin: 6px 8px 4px 8px;
+  }
+  
+  .btc-timer-display {
+    padding: 5px 10px;
+  }
+  
+  .btc-timer-text {
+    font-size: 10px;
+  }
+}
+
+/* ========================================
+   TRENDS DISPLAY STYLES
+   ======================================== */
+
+/* Trends Full Container */
+.btc-trends-full-container {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 4px auto;
+  max-width: 900px;
+  width: calc(100% - 32px);
+}
+
+/* Trends Container */
+.btc-trends-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--bg-input);
+  border-radius: 6px;
+  width: 100%;
+  position: relative;
+}
+
+.btc-trends-label {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+}
+
+.btc-trend-button {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 35px;
+  text-align: center;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.btc-trend-button.up {
+  background-color: var(--color-up);
+}
+
+.btc-trend-button.down {
+  background-color: #f44336;
+}
+
+.btc-trend-button.draw {
+  background-color: var(--color-info);
+}
+
+.btc-trend-button.latest {
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.btc-trend-button.latest.down {
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+.btc-trend-button.latest.draw {
+  box-shadow: 0 0 8px rgba(118, 168, 229, 0.6);
+}
+
+/* Bet Price Indicator Container */
+.bet-price-indicator {
+  /* Container for the entire bet price indicator group */
+}
+
+/* Horizontal Dotted Line */
+.bet-price-indicator line {
+  stroke: var(--color-warning);           /* Golden yellow color */
+  stroke-width: 1;           /* Line thickness */
+  stroke-dasharray: 5 5;     /* Dotted pattern: 8px dash, 4px gap */
+  opacity: 0.9;              /* Slight transparency */
+}
+
+/* Price Label Background Rectangle */
+.bet-price-indicator rect {
+  fill: var(--color-warning);             /* Golden yellow background */
+  rx: 4;                     /* Rounded corners (4px radius) */
+  opacity: 0.9;              /* Slight transparency */
+  width: 75px;               /* Label width */
+  height: 18px;              /* Label height */
+}
+
+/* Price Label Text */
+.bet-price-indicator text {
+  fill: var(--text-dark);            /* Black text color */
+  font-size: 11px;           /* Text size */
+  font-weight: 600;          /* Semi-bold */
+  font-family: monospace;    /* Monospace font */
+  text-anchor: middle;       /* Horizontal center alignment */
+  dominant-baseline: central; /* Vertical center alignment */
+  alignment-baseline: middle; /* Additional vertical centering */
+}

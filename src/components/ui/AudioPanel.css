@@ -6,13 +6,13 @@
   left: 0;
   right: 0;
   background-color: #1a1a1a;
-  padding: 20px;
+  padding: 8px 20px;
   z-index: 1000;
   border-top: 1px solid #333;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 6px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
 }
 
@@ -21,9 +21,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 30px;
+  gap: 15px;
   width: 100%;
   max-width: 400px;
+  margin-top: 2px;
   
 }
 
@@ -37,7 +38,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  padding: 10px;
+  padding: 6px;
   color: white;
   font-weight: normal;
   font-family: system-ui, -apple-system, sans-serif;
@@ -45,29 +46,21 @@
 
 /* Button Hover State - Border Effect */
 .audio-btn:hover {
-  border-color: none;
-  /*box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);*/
+  border-color: rgba(14, 203, 129, 0.6);
+  /*box-shadow: 0 0 0 2px rgba(14, 203, 129, 0.2);*/
 }
 
-/* Button Active/Clicked State - Blue Border */
+/* Button Active/Clicked State - Green Border */
 .audio-btn:active,
 .audio-btn:focus {
-  border-color: #2b2b2b;
+  border-color: rgba(14, 203, 129, 0.8);
   outline: none;
-  /*box-shadow: 0 0 0 1px rgba(74, 158, 255, 0.3);*/
+  /*box-shadow: 0 0 0 1px rgba(14, 203, 129, 0.3);*/
 }
 
 /* Button Pressed State */
 .audio-btn:active {
   transform: scale(0.95);
-}
-
-/* Play Button Specific - Active State (when clicked) */
-.audio-btn--main:active {
-  /*box-shadow: 
-    0 0 25px rgba(76, 175, 80, 0.3),
-    0 0 40px rgba(76, 175, 80, 0.7),
-    inset 0 0 15px rgba(76, 175, 80, 0.2);*/
 }
 
 /* Play Button Specific - Focus State (when tabbed to) */
@@ -78,9 +71,9 @@
 
 /* Mute Button */
 .audio-btn--mute {
-  font-size: 18px;
-  width: 38px;
-  height: 38px;
+  font-size: 14px;
+  width: 30px;
+  height: 30px;
   opacity: 0.8;
 }
 
@@ -102,23 +95,23 @@
 
 /* FontAwesome Size Overrides for Audio Buttons */
 .audio-btn--mute svg {
-  width: 18px !important;
-  height: 18px !important;
+  width: 14px !important;
+  height: 14px !important;
 }
 
 .audio-btn--track svg {
-  width: 16px !important;
-  height: 16px !important;
+  width: 13px !important;
+  height: 13px !important;
 }
 
 .audio-btn--main svg {
-  width: 20px !important;
-  height: 20px !important;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .audio-btn--repeat svg {
-  width: 16px !important;
-  height: 16px !important;
+  width: 13px !important;
+  height: 13px !important;
 }
 
 /* FontAwesome Icon Hover Effects */
@@ -136,15 +129,15 @@
 }
 
 .audio-btn--main.playing svg {
-  filter: drop-shadow(0 0 8px rgba(76, 175, 80, 0.6));
+  filter: drop-shadow(0 0 8px rgba(14, 203, 129, 0.6));
 
 }
 
 /* Previous/Next Track Buttons */
 .audio-btn--track {
-  font-size: 16px;
-  width: 38px;
-  height: 38px;
+  font-size: 13px;
+  width: 30px;
+  height: 30px;
   opacity: 0.8;
 }
 
@@ -156,15 +149,15 @@
 /* Main Play/Pause Button */
 .audio-btn--main {
   background-color: rgba(255, 255, 255, 0.1);
-  font-size: 20px;
-  width: 52px;
-  height: 52px;
+  font-size: 16px;
+  width: 38px;
+  height: 38px;
   transition: all 0.3s ease;
 }
 
 .audio-btn--main.playing {
-  box-shadow: 0 0 20px rgba(55, 211, 60, 0.4);
-  border-color: rgba(76, 175, 80, 0.6);
+  box-shadow: 0 0 20px rgba(14, 203, 129, 0.4);
+  border-color: rgba(14, 203, 129, 0.6);
 }
 
 .audio-btn--main:hover {
@@ -174,9 +167,9 @@
 
 /* Repeat Button */
 .audio-btn--repeat {
-  font-size: 16px;
-  width: 38px;
-  height: 38px;
+  font-size: 13px;
+  width: 30px;
+  height: 30px;
   opacity: 0.8;
 }
 
@@ -191,31 +184,38 @@
   max-width: 400px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  margin: 5px 0 5px 0;
 }
 
 /* Time Display */
 .audio-time {
   color: #ccc;
-  font-size: 12px;
+  font-size: 10px;
   font-family: monospace;
-  min-width: 35px;
+  min-width: 32px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 .audio-time--current {
   text-align: right;
+  justify-content: flex-end;
 }
 
 /* Progress Slider Container */
 .audio-progress-slider {
   flex: 1;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 /* Progress Slider Input */
 .audio-progress-input {
   width: 100%;
-  height: 4px;
+  height: 5px;
   border-radius: 2px;
   outline: none;
   appearance: none;
@@ -223,25 +223,49 @@
   background: #444;
 }
 
+/* Progress Slider Track - Webkit */
+.audio-progress-input::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 5px;
+  cursor: pointer;
+  background: linear-gradient(to right, #0ECB81 var(--progress, 0%), #444 var(--progress, 0%));
+  border-radius: 2px;
+}
+
+/* Progress Slider Track - Firefox */
+.audio-progress-input::-moz-range-track {
+  width: 100%;
+  height: 5px;
+  cursor: pointer;
+  background: #444;
+  border-radius: 2px;
+}
+
+.audio-progress-input::-moz-range-progress {
+  background: #0ECB81;
+  height: 5px;
+  border-radius: 2px;
+}
+
 /* Progress Slider - Active Progress */
 .audio-progress-input::-webkit-slider-thumb {
   appearance: none;
-  width: 14px;
-  height: 14px;
-  background: #4CAF50;
+  width: 10px;
+  height: 10px;
+  background: #0ECB81;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .audio-progress-input::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  background: #4CAF50;
+  width: 10px;
+  height: 10px;
+  background: #0ECB81;
   border-radius: 50%;
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Track Info */
@@ -249,61 +273,90 @@
   text-align: center;
   color: #ccc;
   font-size: 11px;
-  opacity: 0.8;
+  opacity: 0.7;
+  line-height: 1;
+  margin-bottom: 2px;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .audio-control-panel {
-    padding: 15px;
-    gap: 12px;
+    padding: 6px 15px;
+    gap: 5px;
   }
   
   .audio-buttons-row {
-    gap: 20px;
+    gap: 12px;
   }
   
   .audio-btn--main {
-    width: 55px;
-    height: 55px;
-    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
   }
   
   .audio-btn--track {
-    width: 44px;
-    height: 44px;
-    font-size: 24px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
   }
   
   .audio-btn--mute,
   .audio-btn--repeat {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .audio-time {
+    font-size: 9px;
+    min-width: 30px;
+  }
+
+  .audio-track-info {
+    font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
+  .audio-control-panel {
+    padding: 6px 12px;
+    gap: 4px;
+  }
+
   .audio-buttons-row {
-    gap: 15px;
+    gap: 10px;
   }
   
   .audio-btn--main {
-    width: 50px;
-    height: 50px;
-    font-size: 25px;
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
   }
   
   .audio-btn--track {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
   }
   
   .audio-btn--mute,
   .audio-btn--repeat {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+
+  .audio-progress-container {
+    gap: 6px;
+  }
+
+  .audio-time {
+    font-size: 8px;
+    min-width: 28px;
+  }
+
+  .audio-track-info {
+    font-size: 11px;
   }
 }

@@ -11,7 +11,8 @@ const useAudio = () => {
   const audioFiles = {
     bet: '/audio/bet-sound.mp3',
     win: '/audio/win-sound.mp3',
-    lose: '/audio/lose-sound.mp3'
+    lose: '/audio/lose-sound.mp3',
+    even: '/audio/even-sound.mp3'
   };
 
   // Listen for user interactions to enable audio
@@ -193,7 +194,8 @@ const useAudio = () => {
     // Essential sound functions
     playBetSound: () => playAudio('bet'),
     playWinSound: () => playAudio('win'),
-    playLoseSound: () => playAudio('lose')
+    playLoseSound: () => playAudio('lose'),
+    playEvenSound: () => playAudio('even')
   };
 };
 
