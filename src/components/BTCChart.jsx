@@ -303,6 +303,61 @@ const BTCChart = () => {
 
   // Betting freeze for first 5 seconds (prevent betting during price loading)
   const [isBettingAllowed, setIsBettingAllowed] = useState(false);
+  
+  // Fetch game configuration on mount
+  useEffect(() => {
+    const fetchGameConfig = async () => {
+      try {
+        const response = await fetch('https://api.iiifleche.io/api/v1/game/get/6');
+        const result = await response.json();
+        
+        if (result.Code === 1 && result.Data) {
+          console.log('✅ Game config loaded:', result.Data);
+          
+          // Set min/max amounts
+          if (result.Data.MinAmount) setMinAmount(result.Data.MinAmount);
+          if (result.Data.MaxAmount) setMaxAmount(result.Data.MaxAmount);
+          
+          // Set payout percent
+          if (result.Data.PayoutPercent) setPayoutPercent(result.Data.PayoutPercent);
+          
+          // Set trends list if available and not empty
+          if (result.Data.Payout && Array.isArray(result.Data.Payout) && result.Data.Payout.length > 0) {
+            console.log('✅ Using trends from API:', result.Data.Payout);
+            setTrendsList(result.Data.Payout);
+          } else {
+            console.log('⚠️ API has no trends, using fallback');
+            // Fallback to hardcoded trends if API doesn't provide them
+            setTrendsList([
+              { value: 'AU', label: 'Mooning', color1: 'text-bg-green', color2: 'text-bg-green', color3: 'text-bg-green' },
+              { value: 'SU', label: 'Out of Gas', color1: 'text-bg-green', color2: 'text-bg-green', color3: 'text-bg-danger' },
+              { value: 'MU', label: 'Rollercoaster', color1: 'text-bg-green', color2: 'text-bg-danger', color3: 'text-bg-green' },
+              { value: 'QU', label: 'Comeback', color1: 'text-bg-danger', color2: 'text-bg-green', color3: 'text-bg-green' },
+              { value: 'AD', label: 'Dumping', color1: 'text-bg-danger', color2: 'text-bg-danger', color3: 'text-bg-danger' },
+              { value: 'SD', label: 'Lucky Bounce', color1: 'text-bg-danger', color2: 'text-bg-danger', color3: 'text-bg-green' },
+              { value: 'MD', label: 'Fake Out', color1: 'text-bg-danger', color2: 'text-bg-green', color3: 'text-bg-danger' },
+              { value: 'QD', label: 'The Trap', color1: 'text-bg-green', color2: 'text-bg-danger', color3: 'text-bg-danger' }
+            ]);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to load game config:', error);
+        // Fallback to hardcoded trends
+        setTrendsList([
+          { value: 'AU', label: 'Mooning', color1: 'text-bg-green', color2: 'text-bg-green', color3: 'text-bg-green' },
+          { value: 'SU', label: 'Out of Gas', color1: 'text-bg-green', color2: 'text-bg-green', color3: 'text-bg-danger' },
+          { value: 'MU', label: 'Rollercoaster', color1: 'text-bg-green', color2: 'text-bg-danger', color3: 'text-bg-green' },
+          { value: 'QU', label: 'Comeback', color1: 'text-bg-danger', color2: 'text-bg-green', color3: 'text-bg-green' },
+          { value: 'AD', label: 'Dumping', color1: 'text-bg-danger', color2: 'text-bg-danger', color3: 'text-bg-danger' },
+          { value: 'SD', label: 'Lucky Bounce', color1: 'text-bg-danger', color2: 'text-bg-danger', color3: 'text-bg-green' },
+          { value: 'MD', label: 'Fake Out', color1: 'text-bg-danger', color2: 'text-bg-green', color3: 'text-bg-danger' },
+          { value: 'QD', label: 'The Trap', color1: 'text-bg-green', color2: 'text-bg-danger', color3: 'text-bg-danger' }
+        ]);
+      }
+    };
+    
+    fetchGameConfig();
+  }, []);
 
 
   // Chart type selection state (Elite or Pro)
@@ -416,6 +471,12 @@ const BTCChart = () => {
   const [selectedBet, setSelectedBet] = useState(null); // 'up' or 'down'
   // Legacy activeBets state removed - now using bettingRounds.{timeframe}.activeBets for each timeframe
   const [bettingHistory, setBettingHistory] = useState([]); // Track betting results
+  
+  // Dynamic trends from API
+  const [trendsList, setTrendsList] = useState([]);
+  const [payoutPercent, setPayoutPercent] = useState(null);
+  const [minAmount, setMinAmount] = useState('10.00');
+  const [maxAmount, setMaxAmount] = useState('100.00');
 
   // Legacy ref synchronization removed - using bettingRounds state instead
 
@@ -1138,6 +1199,29 @@ const BTCChart = () => {
       setIsGameEngineConnected(true);
       setGameEngineConnection(connection);
       gameEngineConnectionRef.current = connection;
+      
+      // 🧪 TEST: Check if backend supports trend fetching
+      console.log("🔍 Testing for GetAvailableTrends method...");
+      try {
+        const trends = await connection.invoke("GetAvailableTrends");
+        console.log("✅ Backend SUPPORTS GetAvailableTrends:", trends);
+      } catch (err) {
+        console.log("❌ Backend does NOT support GetAvailableTrends:", err.message);
+      }
+      
+      try {
+        const betTypes = await connection.invoke("GetBetTypes");
+        console.log("✅ Backend SUPPORTS GetBetTypes:", betTypes);
+      } catch (err) {
+        console.log("❌ Backend does NOT support GetBetTypes:", err.message);
+      }
+      
+      try {
+        const config = await connection.invoke("GetGameConfig");
+        console.log("✅ Backend SUPPORTS GetGameConfig:", config);
+      } catch (err) {
+        console.log("❌ Backend does NOT support GetGameConfig:", err.message);
+      }
       
     } catch (err) {
       console.error("❌ Game Engine connection error:", err);
@@ -2088,7 +2172,7 @@ const BTCChart = () => {
                   }, 100);
                 }
               }}
-              placeholder="Min 10.00 - Max 100.00"
+              placeholder={`Min ${minAmount} - Max ${maxAmount}`}
               className="trading-amount-input"
             />
           </div>
@@ -2097,117 +2181,41 @@ const BTCChart = () => {
           <div className="trading-trend-section">
             <div className="trading-trend-label">Select Trend</div>
             
-            {/* 8 Betting Buttons in 2x4 Grid */}
+            {/* 8 Betting Buttons in 2x4 Grid - Dynamic from API */}
             <div className="trading-trend-grid">
-              {/* Row 1: AU, SU, MU, QU */}
-              <button
-                className={`trend-button trend-up ${selectedTrend === 'AU' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('AU')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Mooning</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              <button
-                className={`trend-button trend-up ${selectedTrend === 'SU' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('SU')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Out of Gas</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-up"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">Rollercoaster</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-up"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">Comeback</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              {/* Row 2: AD, SD, MD, QD */}
-              <button
-                className={`trend-button trend-down ${selectedTrend === 'AD' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('AD')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Dumping</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-
-              <button
-                className={`trend-button trend-down ${selectedTrend === 'SD' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('SD')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Lucky Bounce</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-down"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">Fake Out</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-down"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">The Trap</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
+              {trendsList.map((trend) => {
+                // Determine if it's an "up" trend (first 4) or "down" trend (last 4)
+                const isUpTrend = ['AU', 'SU', 'MU', 'QU'].includes(trend.value);
+                const isDownTrend = ['AD', 'SD', 'MD', 'QD'].includes(trend.value);
+                
+                // Helper function to convert color class to dot class
+                const getColorClass = (colorClass) => {
+                  if (colorClass === 'text-bg-green') return 'green';
+                  if (colorClass === 'text-bg-danger') return 'red';
+                  return 'green';
+                };
+                
+                // Check if currently enabled (first 4: AU, SU, AD, SD are enabled)
+                const isEnabled = ['AU', 'SU', 'AD', 'SD'].includes(trend.value);
+                
+                return (
+                  <button
+                    key={trend.id || trend.value}
+                    className={`trend-button ${isUpTrend ? 'trend-up' : 'trend-down'} ${selectedTrend === trend.value ? 'selected' : ''}`}
+                    onClick={() => setSelectedTrend(trend.value)}
+                    disabled={!isGameEngineConnected || currentOrder !== null || !isEnabled}
+                    style={{ opacity: !isGameEngineConnected || !isEnabled ? 0.5 : 1 }}
+                    title={!isEnabled ? 'Coming soon' : ''}
+                  >
+                    <div className="trend-label">{trend.label || trend.title || trend.value}</div>
+                    <div className="trend-dots">
+                      <span className={`dot ${getColorClass(trend.color1)}`}></span>
+                      <span className={`dot ${getColorClass(trend.color2)}`}></span>
+                      <span className={`dot ${getColorClass(trend.color3)}`}></span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -2268,73 +2276,6 @@ const BTCChart = () => {
           ))}
         </div>
       )}
-
-      {/* TEST BUTTONS - Temporary for modal testing - Bottom of page */}
-      <div style={{ 
-        position: 'fixed', 
-        bottom: '20px', 
-        right: '20px', 
-        zIndex: 10000,
-        display: 'flex',
-        gap: '10px'
-      }}>
-        <button
-          onClick={() => {
-            setPopupResult({
-              type: 'win',
-              amount: 500,
-              totalWinnings: 500,
-              openPrice: 86334.66,
-              closePrice: 86347.02,
-              round1Result: 'up',
-              round2Result: 'down',
-              round3Result: 'up'
-            });
-            setShowResultPopup(true);
-          }}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-          }}
-        >
-          Win Modal
-        </button>
-        
-        <button
-          onClick={() => {
-            setPopupResult({
-              type: 'loss',
-              amount: 300,
-              openPrice: 86334.66,
-              closePrice: 86300.15,
-              round1Result: 'down',
-              round2Result: 'up',
-              round3Result: 'down'
-            });
-            setShowResultPopup(true);
-          }}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#F44336',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-          }}
-        >
-          Lose Modal
-        </button>
-      </div>
 
       {/* Result Popup - SIMPLIFIED VERSION */}
       {showResultPopup && popupResult && (
