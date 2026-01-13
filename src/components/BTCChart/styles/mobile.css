@@ -20,8 +20,63 @@
   }
 }
 
-/* ========== COMPREHENSIVE MOBILE STYLES ========== */
+/* ========== TABLET VIEW (481px - 768px) ========== */
+@media (min-width: 481px) and (max-width: 768px) {
+  /* Game Mode Dropdown - Tablet */
+  .btc-game-mode-selector {
+    top: 75px;
+    left: 70px;
+    right: auto;
+    transform: translateX(-50%);
+    z-index: 100;
+  }
+
+  .game-mode-dropdown {
+    padding: 3px 8px 3px 8px;
+    font-size: 12px;
+    width: 90px;
+  }
+
+  .game-mode-dropdown-arrow {
+    font-size: 12px;
+  }
+
+  .game-mode-dropdown-option {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}
+
+/* ========== MOBILE VIEW (480px and below) ========== */
+@media (max-width: 480px) {
+  /* Game Mode Dropdown - Mobile */
+  .btc-game-mode-selector {
+    top: 75px;
+    left: 10px;
+    right: auto;
+    transform: none;
+    z-index: 100;
+  }
+
+  .game-mode-dropdown {
+    padding: 3px 6px 3px 6px;
+    font-size: 11px;
+    width: 85px;
+  }
+
+  .game-mode-dropdown-arrow {
+    font-size: 11px;
+  }
+
+  .game-mode-dropdown-option {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
+
+/* ========== COMPREHENSIVE MOBILE STYLES (Both Tablet & Mobile) ========== */
 @media (max-width: 768px) {
+
   /* Two-column layout stacks vertically on mobile */
   .btc-two-column-wrapper {
     flex-direction: column;
@@ -1203,9 +1258,10 @@
 
 @media (max-width: 768px) {
   .btc-member-auth {
-    left: 5px;
-    top: 68px;
-    transform: none;
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .btc-member-auth-input {

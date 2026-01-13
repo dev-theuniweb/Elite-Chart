@@ -12,13 +12,16 @@ import { generateShareUrl } from '../utils/shareUtils';
 import * as signalR from '@microsoft/signalr';
 import useAudio from '../hooks/useAudio';
 import html2canvas from 'html2canvas';
+import { GAME_MODES, getGameModeById } from '../constants/gameModeConfig';
+import TrendGrid from './ui/TrendGrid';
+import BattlePassPanel from './ui/BattlePassPanel';
 
 // Constants
 const PADDING = 20;
 const LEFT_LABEL_WIDTH = 20;
 const RIGHT_LABEL_WIDTH = 105;
 const CHART_PADDING_RIGHT = 60;
-const INITIAL_PRICE = 88000;
+const INITIAL_PRICE = 90000;
 const UPPER_THRESHOLD = 120000;
 const LOWER_THRESHOLD = 35000;
 const DATA_LENGTH = 60;
@@ -218,7 +221,8 @@ const getSmoothPath = (points) => {
 const formatNumber = (num) =>
   num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const BTCChart = () => {
+const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, selectedTrend, setSelectedTrend }) => {
+  
   // Raw data storage (always 1-second intervals)
   const [rawData, setRawData] = useState(() => {
     let basePrice = INITIAL_PRICE;
@@ -305,6 +309,11 @@ const BTCChart = () => {
   const [isBettingAllowed, setIsBettingAllowed] = useState(false);
 
 
+  // 🎮 Game Mode Selection (NEW)
+  const [currentGameMode, setCurrentGameMode] = useState(GAME_MODES.INSURANCE); // Default to Insurance Mode
+  const [selectedGameModeKey, setSelectedGameModeKey] = useState('INSURANCE'); // Track mode key for UI
+  const [isGameModeDropdownOpen, setIsGameModeDropdownOpen] = useState(false); // Custom dropdown state
+  
   // Chart type selection state (Elite or Pro)
   const [selectedChartType, setSelectedChartType] = useState('elite'); // 'elite' or 'pro'
   
@@ -355,7 +364,11 @@ const BTCChart = () => {
   const connectionStatusTimeoutRef = useRef(null);
 
   // 🎮 NEW: Game Engine Integration
-  const [memberId, setMemberId] = useState('');
+  // Use local state for memberId only if not provided as prop
+  const [localMemberId, setLocalMemberId] = useState('');
+  const effectiveMemberId = memberId || localMemberId; // Prioritize prop over local state
+  const setMemberId = memberId ? undefined : setLocalMemberId; // Only allow setting if not controlled by parent
+  
   const [isGameEngineConnected, setIsGameEngineConnected] = useState(false);
   const [gameEngineConnection, setGameEngineConnection] = useState(null);
   const gameEngineConnectionRef = useRef(null);
@@ -378,6 +391,10 @@ const BTCChart = () => {
   // Rotating title for phase icons panel
   const [phaseTitle, setPhaseTitle] = useState('Trend Incoming...');
   const phaseTitles = ['Trend Incoming...', 'Market Pulse...', 'Bull Bear Clashing...'];
+
+  // 🎮 Battle Pass State (for Battle Mode)
+  const [battlePassWinnings, setBattlePassWinnings] = useState(0); // Track total winnings for the day
+  const [activeBattlePasses, setActiveBattlePasses] = useState([]); // ['daily', 'weekly', 'monthly']
 
   // Function to add new price data
   const addNewPriceData = useCallback((newPrice) => {
@@ -411,11 +428,16 @@ const BTCChart = () => {
 
   // Betting interface state
   const [balance, setBalance] = useState(2000);
-  const [betAmount, setBetAmount] = useState('');
-  const [selectedTrend, setSelectedTrend] = useState(null); // AU, SU, MU, QU, AD, SD, MD, QD
+  // betAmount and selectedTrend are now controlled by parent via props
   const [selectedBet, setSelectedBet] = useState(null); // 'up' or 'down'
   // Legacy activeBets state removed - now using bettingRounds.{timeframe}.activeBets for each timeframe
   const [bettingHistory, setBettingHistory] = useState([]); // Track betting results
+  
+  // Dynamic trends from API
+  const [trendsList, setTrendsList] = useState([]);
+  const [payoutPercent, setPayoutPercent] = useState(null);
+  const [minAmount, setMinAmount] = useState('10.00');
+  const [maxAmount, setMaxAmount] = useState('100.00');
 
   // Legacy ref synchronization removed - using bettingRounds state instead
 
@@ -443,7 +465,11 @@ const BTCChart = () => {
     });
     
     // Mark as purchased
-    setPurchasedInsurances(prev => new Set([...prev, insurance.subType]));
+    setPurchasedInsurances(prev => {
+      const updated = new Set([...prev, insurance.subType]);
+      console.log(`🛡️ [INSURANCE] Purchased insurances: ${Array.from(updated).join(', ')}`);
+      return updated;
+    });
     
     // Dismiss the insurance offer message after purchase
     setIsInsuranceFadingOut(true);
@@ -742,6 +768,18 @@ const BTCChart = () => {
     latestPriceRef.current = latest.value;
   }, [latest.value]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isGameModeDropdownOpen && !event.target.closest('.btc-game-mode-selector')) {
+        setIsGameModeDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isGameModeDropdownOpen]);
+
   useEffect(() => {
     if (open1Min === null && data.length > 0) {
       setOpen1Min(data[data.length - 1].value);
@@ -789,6 +827,93 @@ const BTCChart = () => {
     }, 5000); // 5 seconds
 
     return () => clearTimeout(timer);
+  }, []);
+  
+  // Fetch game configuration on mount
+  useEffect(() => {
+    const fetchGameConfig = async () => {
+      try {
+        console.log('🎮 [API] Fetching game configuration...');
+        const response = await fetch('/api/v1/game/get/6');
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('📊 [API] Game config received:', data);
+        
+        // Parse trendsName into trend objects
+        if (data.trendsName) {
+          const trendNames = data.trendsName.split(',').map(t => t.trim());
+          console.log('🎯 [API] Trend names:', trendNames);
+          
+          // Map trend names to codes (AU, SU, MU, QU, AD, SD, MD, QD)
+          const trendCodes = ['AU', 'SU', 'MU', 'QU', 'AD', 'SD', 'MD', 'QD'];
+          const trendDots = {
+            'AU': ['up', 'up', 'up'],
+            'SU': ['down', 'up', 'up'],
+            'MU': ['up', 'down', 'up'],
+            'QU': ['up', 'up', 'down'],
+            'AD': ['down', 'down', 'down'],
+            'SD': ['down', 'down', 'up'],
+            'MD': ['down', 'up', 'down'],
+            'QD': ['up', 'down', 'down']
+          };
+          
+          const trendTypes = {
+            'AU': 'up', 'SU': 'up', 'MU': 'up', 'QU': 'up',
+            'AD': 'down', 'SD': 'down', 'MD': 'down', 'QD': 'down'
+          };
+          
+          const parsedTrends = trendNames.map((name, index) => ({
+            code: trendCodes[index],
+            label: name,
+            dots: trendDots[trendCodes[index]],
+            enabled: true,
+            type: trendTypes[trendCodes[index]]
+          }));
+          
+          console.log('✅ [API] Parsed trends:', parsedTrends);
+          
+          // Only use API trends if count matches current game mode
+          if (parsedTrends.length === currentGameMode.totalPatterns) {
+            setTrendsList(parsedTrends);
+            console.log(`✅ [API] Using ${parsedTrends.length} trends from API`);
+          } else {
+            console.log(`⚠️ [API] Trend count mismatch. API: ${parsedTrends.length}, Game Mode: ${currentGameMode.totalPatterns}. Using game mode patterns.`);
+            setTrendsList([]);
+          }
+        } else {
+          console.log('⚠️ [API] No trends in response, using game mode patterns');
+          setTrendsList([]);
+        }
+        
+        // Update min/max amounts
+        if (data.minAmount) {
+          setMinAmount(data.minAmount.toString());
+          console.log(`💰 [API] Min amount: ${data.minAmount}`);
+        }
+        if (data.maxAmount) {
+          setMaxAmount(data.maxAmount.toString());
+          console.log(`💰 [API] Max amount: ${data.maxAmount}`);
+        }
+        
+        // Store payout percent for future use
+        if (data.payoutPercent) {
+          setPayoutPercent(data.payoutPercent);
+          console.log(`📈 [API] Payout percent: ${data.payoutPercent}%`);
+        }
+        
+      } catch (error) {
+        console.error('❌ [API] Failed to fetch game config:', error);
+        // Use game mode patterns on error (don't override)
+        console.log('⚠️ [API] Error fetching config, using game mode patterns');
+        setTrendsList([]);
+      }
+    };
+    
+    fetchGameConfig();
   }, []);
   
   // Rotate phase title every 3 seconds
@@ -894,16 +1019,88 @@ const BTCChart = () => {
     }
   }, [showResultPopup, popupResult]);
 
+  // 🎮 Game Mode Switching Handler
+  const switchGameMode = useCallback((modeKey) => {
+    const newMode = GAME_MODES[modeKey];
+    if (!newMode) {
+      console.error(`Invalid game mode: ${modeKey}`);
+      return;
+    }
+    
+    // Check if there's an active bet
+    if (currentOrder !== null) {
+      alert('Cannot switch game mode while a bet is active. Please wait for the current round to finish.');
+      return;
+    }
+    
+    console.log(`🎮 Switching to ${newMode.name} (GameID: ${newMode.id})`);
+    setCurrentGameMode(newMode);
+    setSelectedGameModeKey(modeKey);
+    
+    // Reset game-specific state when switching modes
+    setSelectedTrend(null);
+    setOrderResults({
+      round1Result: null,
+      round2Result: null,
+      round3Result: null,
+      round1Price: 0,
+      round2Price: 0,
+      round3Price: 0
+    });
+    setPurchasedInsurances(new Set());
+    setCurrentInsuranceMessage(null);
+  }, [currentOrder]);
+
+  // 🎮 Battle Pass - Purchase Handler
+  const handlePurchaseBattlePass = useCallback((passType) => {
+    // TODO: Implement API call to purchase battle pass with FEFE token
+    console.log(`🎟️ Purchasing ${passType} battle pass`);
+    
+    // For now, just add to active passes
+    setActiveBattlePasses(prev => {
+      if (!prev.includes(passType)) {
+        return [...prev, passType];
+      }
+      return prev;
+    });
+    
+    alert(`${passType.charAt(0).toUpperCase() + passType.slice(1)} Battle Pass activated! (Coming soon)`);
+  }, []);
+
+  // 🎮 Battle Pass - Track winnings (only in Battle Mode)
+  useEffect(() => {
+    if (currentGameMode.id === 7) { // Battle Mode
+      // Reset winnings at 5:00 AM daily
+      const now = new Date();
+      const resetTime = new Date();
+      resetTime.setHours(5, 0, 0, 0);
+      
+      if (now.getHours() >= 5) {
+        resetTime.setDate(resetTime.getDate() + 1);
+      }
+      
+      const timeUntilReset = resetTime - now;
+      
+      const resetTimer = setTimeout(() => {
+        console.log('🔄 Battle Pass reset - New day begins!');
+        setBattlePassWinnings(0);
+        setActiveBattlePasses([]);
+      }, timeUntilReset);
+      
+      return () => clearTimeout(resetTimer);
+    }
+  }, [currentGameMode.id]);
+
   // 🎮 Game Engine SignalR Connection
   const connectToGameEngine = async () => {
-    if (!memberId.trim()) {
+    if (!effectiveMemberId || !effectiveMemberId.trim()) {
       alert('Please enter Member ID!');
       return;
     }
 
     try {
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`https://ge.iiifleche.io/hubs/order?memberId=${memberId}`, {
+        .withUrl(`https://ge.iiifleche.io/hubs/order?memberId=${effectiveMemberId}`, {
           withCredentials: false
         })
         .withAutomaticReconnect()
@@ -946,8 +1143,8 @@ const BTCChart = () => {
       connection.on("OrderUpdate", (data) => {
         console.log(`📈 Order Update: ${JSON.stringify(data)}`);
         
-        // Handle insurance messages - show only latest one
-        if (data.event === "INSURANCE" && data.messages && data.messages.length > 0) {
+        // Handle insurance messages - show only latest one (Only in Insurance Mode)
+        if (currentGameMode.hasInsurance && data.event === "INSURANCE" && data.messages && data.messages.length > 0) {
           // Get the last insurance message from the array
           const insuranceMsg = data.messages.find(msg => msg.mainType === "Insurance");
           
@@ -1029,6 +1226,7 @@ const BTCChart = () => {
 
       connection.on("OrderResult", (data) => {
         console.log(`🏁 Final Result: ${JSON.stringify(data)}`);
+        console.log(`🛡️ Active insurances at payout: ${Array.from(purchasedInsurances).join(', ') || 'none'}`);
         
         // Prevent duplicate processing of the same order result
         const orderId = data.orderId || data.memberId + '_' + data.orderDate;
@@ -1038,24 +1236,64 @@ const BTCChart = () => {
         }
         processedOrderIdRef.current = orderId;
         
-        // Determine if user won or lost based on drawResult
-        const isWin = data.drawResult && data.drawResult.toUpperCase() !== 'LOSE';
-        const isLose = data.drawResult && data.drawResult.toUpperCase() === 'LOSE';
+        // Determine if user won, lost, or tied based on drawResult
+        const drawResultUpper = data.drawResult ? data.drawResult.toUpperCase() : '';
+        const isWin = drawResultUpper && drawResultUpper !== 'LOSE' && drawResultUpper !== 'TIE' && drawResultUpper !== 'DRAW';
+        const isLose = drawResultUpper === 'LOSE';
+        const isTie = drawResultUpper === 'TIE' || drawResultUpper === 'DRAW';
         
         // Get bet amount from API data, fallback to currentOrder or state
         const betAmountFromAPI = data.betAmount || currentOrder?.betAmount || betAmount;
         
-        // Calculate payout amount - for WIN, use betAmount from API as the total winnings
-        const payout = isWin ? betAmountFromAPI : (data.winLoseAmount || 0);
+        // Calculate payout amount based on result and game mode
+        let payout = 0;
+        if (isWin) {
+          payout = betAmountFromAPI; // WIN: full bet amount returned (1:1 ratio)
+          
+          // Apply insurance deductions if in Insurance Mode
+          if (currentGameMode.hasInsurance) {
+            let deductionLog = [];
+            
+            // Section 1 insurance: Deduct 30% from payout
+            if (purchasedInsurances.has('Section 1')) {
+              const deduction = payout * 0.30;
+              payout = payout - deduction;
+              deductionLog.push(`Section 1: -${deduction.toFixed(4)} GMCHIP (30%)`);
+            }
+            
+            // Section 2 insurance: Deduct 30% from remaining payout
+            if (purchasedInsurances.has('Section 2')) {
+              const deduction = payout * 0.30;
+              payout = payout - deduction;
+              deductionLog.push(`Section 2: -${deduction.toFixed(4)} GMCHIP (30% of remaining)`);
+            }
+            
+            if (deductionLog.length > 0) {
+              console.log(`🛡️ Insurance deductions applied: ${deductionLog.join(', ')} → Final payout: ${payout.toFixed(4)} GMCHIP`);
+            }
+          }
+        } else if (isTie) {
+          // TIE: Different rules per game mode
+          if (currentGameMode.tieRule === 'refund50') {
+            // Insurance Mode: Return 50% of bet (insurance doesn't affect TIE outcome)
+            payout = betAmountFromAPI * 0.5;
+            console.log(`↩️ TIE in Insurance Mode: 50% refund = ${payout} GMCHIP (insurance doesn't change TIE payout)`);
+          } else {
+            // Battle/Extreme Mode: Player loses all
+            payout = 0;
+          }
+        } else if (isLose) {
+          payout = data.winLoseAmount || 0; // LOSE: 0 or negative amount (insurance doesn't affect LOSS)
+        }
         
         // Add to betting history
         const historyEntry = {
           id: Date.now(),
           direction: data.betNumber || 'N/A',
           amount: betAmountFromAPI,
-          result: isWin ? 'win' : 'loss',
+          result: isWin ? 'win' : isTie ? 'tie' : 'loss',
           payout: payout,
-          winnings: isWin ? Math.abs(payout) : 0,
+          winnings: isWin ? Math.abs(payout) : isTie ? Math.abs(payout) : 0,
           placedAt: new Date(),
           resolvedAt: new Date(),
           round1Result: orderResults.round1Result,
@@ -1081,10 +1319,12 @@ const BTCChart = () => {
         // Show result popup
         if (isWin) {
           // WIN scenario
+          const winAmount = Math.abs(payout);
+          
           setPopupResult({
             type: 'win',
-            amount: Math.abs(payout),
-            totalWinnings: Math.abs(payout),
+            amount: winAmount,
+            totalWinnings: winAmount,
             round1Result: normalizeResult(data.round1Result),
             round2Result: normalizeResult(data.round2Result),
             round3Result: normalizeResult(data.round3Result)
@@ -1092,12 +1332,38 @@ const BTCChart = () => {
           setShowResultPopup(true);
           
           // Add winnings to balance
-          setBalance(prevBalance => prevBalance + Math.abs(payout));
+          setBalance(prevBalance => prevBalance + winAmount);
+          
+          // 🎮 Update Battle Pass winnings (only in Battle Mode)
+          if (currentGameMode.id === 7) {
+            setBattlePassWinnings(prev => prev + winAmount);
+            console.log(`🎮 Battle Pass: +${winAmount} GMCHIP (Total: ${battlePassWinnings + winAmount})`);
+          }
+        } else if (isTie) {
+          // TIE scenario - different handling per game mode
+          const refundAmount = Math.abs(payout);
+          
+          setPopupResult({
+            type: 'tie',
+            amount: currentGameMode.tieRule === 'refund50' ? refundAmount : betAmountFromAPI,
+            round1Result: normalizeResult(data.round1Result),
+            round2Result: normalizeResult(data.round2Result),
+            round3Result: normalizeResult(data.round3Result)
+          });
+          setShowResultPopup(true);
+          
+          // Insurance Mode: Refund 50% | Battle/Extreme: No refund
+          if (currentGameMode.tieRule === 'refund50' && refundAmount > 0) {
+            setBalance(prevBalance => prevBalance + refundAmount);
+            console.log(`↩️ TIE - Refunded 50%: ${refundAmount} GMCHIP`);
+          } else {
+            console.log(`❌ TIE - No refund in ${currentGameMode.name}`);
+          }
         } else if (isLose) {
           // LOSE scenario - show the bet amount from API that was lost
           setPopupResult({
             type: 'loss',
-            amount: betAmountFromAPI, // Use bet amount from API
+            amount: betAmountFromAPI,
             round1Result: normalizeResult(data.round1Result),
             round2Result: normalizeResult(data.round2Result),
             round3Result: normalizeResult(data.round3Result)
@@ -1120,7 +1386,10 @@ const BTCChart = () => {
             round3Price: 0
           });
           // Clear purchased insurances when game ends
-          setPurchasedInsurances(new Set());
+          setPurchasedInsurances(prev => {
+            console.log(`🧹 Clearing purchased insurances: ${Array.from(prev).join(', ') || 'none'}`);
+            return new Set();
+          });
         }, 8000);
       });
 
@@ -1148,12 +1417,8 @@ const BTCChart = () => {
 
   // Create order function for new betting system
   const createOrder = async (betNumber) => {
-    if (!gameEngineConnectionRef.current || !isGameEngineConnected) {
-      alert("⚠️ Not connected to game engine");
-      return;
-    }
-
-    if (betAmount <= 0 || betAmount > balance) {
+    // Validate bet amount
+    if (!betAmount || betAmount <= 0 || betAmount > balance) {
       alert(`Invalid bet amount. Please enter an amount between 1 and ${balance}`);
       return;
     }
@@ -1162,17 +1427,31 @@ const BTCChart = () => {
     const currentPrice = data[data.length - 1]?.value || latest.value;
 
     const orderRequest = {
-      MemberId: parseInt(memberId),
-      GameId: 6,
+      MemberId: effectiveMemberId ? parseInt(effectiveMemberId) : null,
+      GameId: currentGameMode.id, // 🎮 Use dynamic GameId based on selected mode
       BetNumber: betNumber,
-      BetAmount: betAmount,
+      BetAmount: parseFloat(betAmount),
       OrderDate: new Date().toISOString(),
       OrderPrice: currentPrice
     };
 
-    console.log(`📤 Sending order: ${JSON.stringify(orderRequest)}`);
+    console.log(`📤 Creating order for ${currentGameMode.name} (GameID: ${currentGameMode.id}):`, orderRequest);
 
     try {
+      // If parent provided handleCreateOrder, use it (lifted state architecture)
+      if (handleCreateOrder && typeof handleCreateOrder === 'function') {
+        console.log('📤 [LIFTED STATE] Using parent handleCreateOrder');
+        await handleCreateOrder(orderRequest);
+        return;
+      }
+
+      // Otherwise, use game engine connection (original architecture)
+      if (!gameEngineConnectionRef.current || !isGameEngineConnected) {
+        alert("⚠️ Not connected to game engine. Please connect first.");
+        return;
+      }
+
+      console.log('📤 [GAME ENGINE] Using SignalR connection');
       await gameEngineConnectionRef.current.invoke("CreateOrder", orderRequest);
       
       // Store current order with the captured price for tracking
@@ -1873,8 +2152,8 @@ const BTCChart = () => {
           </div>
         )}
         
-        {/* Insurance Badges - Right Side */}
-        {(purchasedInsurances.size > 0 || currentInsuranceMessage) && (
+        {/* Insurance Badges - Right Side - Only in Insurance Mode */}
+        {currentGameMode.hasInsurance && (purchasedInsurances.size > 0 || currentInsuranceMessage) && (
           <div className="insurance-badges">
             {/* Show Round 1 if purchased */}
             {purchasedInsurances.has('Section 1') && (
@@ -1961,6 +2240,39 @@ const BTCChart = () => {
         {alertMessage && <div className="btc-alert">{alertMessage}</div>}
       </div>
 
+      {/* 🎮 Game Mode Dropdown - Independent control */}
+      <div className="btc-game-mode-selector">
+        <div 
+          className={`game-mode-dropdown ${currentOrder !== null ? 'disabled' : ''} ${isGameModeDropdownOpen ? 'open' : ''}`}
+          onClick={() => !currentOrder && setIsGameModeDropdownOpen(!isGameModeDropdownOpen)}
+          title="Select Game Mode"
+        >
+          <span className="game-mode-dropdown-label">{currentGameMode.label}</span>
+          <span className="game-mode-dropdown-arrow">▼</span>
+        </div>
+        
+        {isGameModeDropdownOpen && !currentOrder && (
+          <div className="game-mode-dropdown-menu">
+            {Object.keys(GAME_MODES).map((modeKey) => {
+              const mode = GAME_MODES[modeKey];
+              return (
+                <div
+                  key={modeKey}
+                  className={`game-mode-dropdown-option ${selectedGameModeKey === modeKey ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    switchGameMode(modeKey);
+                    setIsGameModeDropdownOpen(false);
+                  }}
+                >
+                  {mode.label}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Battle Timer Display - Above everything */}
       <div className="btc-timer-container">
         <div className={`btc-timer-display ${
@@ -2028,10 +2340,10 @@ const BTCChart = () => {
             <div className="trading-balance-value">
               <img 
                 src="https://siteimg.iiifleche.io/Site/183_IIIF//220200_Market_Rates/Coin03.png" 
-                alt="GMCHIP" 
+                alt={currentGameMode.defaultToken} 
                 className="gmchip-icon"
               />
-              <span className="gmchip-text">GMCHIP</span>
+              <span className="gmchip-text">{currentGameMode.defaultToken}</span>
               <span className="gmchip-amount">
                 {balance.toLocaleString('en-US', {
                   minimumFractionDigits: 4,
@@ -2088,128 +2400,19 @@ const BTCChart = () => {
                   }, 100);
                 }
               }}
-              placeholder="Min 10.00 - Max 100.00"
+              placeholder={`Min ${minAmount} - Max ${maxAmount}`}
               className="trading-amount-input"
             />
           </div>
 
-          {/* Select Trend Section */}
-          <div className="trading-trend-section">
-            <div className="trading-trend-label">Select Trend</div>
-            
-            {/* 8 Betting Buttons in 2x4 Grid */}
-            <div className="trading-trend-grid">
-              {/* Row 1: AU, SU, MU, QU */}
-              <button
-                className={`trend-button trend-up ${selectedTrend === 'AU' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('AU')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Mooning</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              <button
-                className={`trend-button trend-up ${selectedTrend === 'SU' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('SU')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Out of Gas</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-up"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">Rollercoaster</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-up"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">Comeback</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              {/* Row 2: AD, SD, MD, QD */}
-              <button
-                className={`trend-button trend-down ${selectedTrend === 'AD' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('AD')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Dumping</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-
-              <button
-                className={`trend-button trend-down ${selectedTrend === 'SD' ? 'selected' : ''}`}
-                onClick={() => setSelectedTrend('SD')}
-                disabled={!isGameEngineConnected || currentOrder !== null}
-                style={{ opacity: !isGameEngineConnected ? 0.5 : 1 }}
-              >
-                <div className="trend-label">Lucky Bounce</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-down"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">Fake Out</div>
-                <div className="trend-dots">
-                  <span className="dot red"></span>
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-
-              <button
-                className="trend-button trend-down"
-                disabled
-                title="Coming soon"
-              >
-                <div className="trend-label">The Trap</div>
-                <div className="trend-dots">
-                  <span className="dot green"></span>
-                  <span className="dot red"></span>
-                  <span className="dot red"></span>
-                </div>
-              </button>
-            </div>
-          </div>
+          {/* Trend Grid Component - Dynamic 4 or 8 patterns */}
+          <TrendGrid
+            gameMode={currentGameMode}
+            selectedTrend={selectedTrend}
+            onTrendSelect={setSelectedTrend}
+            isConnected={isGameEngineConnected}
+            hasActiveOrder={currentOrder !== null}
+          />
 
           {/* Buy Now Button */}
           <button 
@@ -2233,27 +2436,45 @@ const BTCChart = () => {
             Buy Now
           </button>
 
+          {/* 🎮 Battle Pass Panel - Hidden (backend not ready) */}
+          {false && currentGameMode.id === 7 && (
+            <BattlePassPanel
+              currentWinnings={battlePassWinnings}
+              target={3000}
+              activePasses={activeBattlePasses}
+              onPurchasePass={handlePurchaseBattlePass}
+            />
+          )}
+
         </div> {/* Close btc-trading-panel */}
       </div> {/* Close btc-two-column-wrapper */}
 
       {/* Member Authentication UI - Game Engine */}
-      <div className="btc-member-auth">
-        <input
-          type="text"
-          placeholder="Member ID"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          disabled={isGameEngineConnected}
-          className="btc-member-auth-input"
-        />
-        <button
-          onClick={connectToGameEngine}
-          disabled={isGameEngineConnected}
-          className="btc-member-auth-button"
-        >
-          {isGameEngineConnected ? '✓ Connected' : 'Connect'}
-        </button>
-      </div>
+      {/* Only show if memberId not provided as prop (lifted state architecture) */}
+      {!memberId && !isGameEngineConnected && (
+        <div className="btc-member-auth">
+          <input
+            type="text"
+            placeholder="Member ID"
+            value={effectiveMemberId}
+            onChange={(e) => {
+              // Only allow local state if not controlled by parent
+              if (setMemberId) {
+                setMemberId(e.target.value);
+              }
+            }}
+            disabled={isGameEngineConnected}
+            className="btc-member-auth-input"
+          />
+          <button
+            onClick={connectToGameEngine}
+            disabled={isGameEngineConnected}
+            className="btc-member-auth-button"
+          >
+            {isGameEngineConnected ? '✓ Connected' : 'Connect'}
+          </button>
+        </div>
+      )}
 
       {/* Detailed history dropdown (optional) */}
       {showHistory && (
@@ -2268,73 +2489,6 @@ const BTCChart = () => {
           ))}
         </div>
       )}
-
-      {/* TEST BUTTONS - Temporary for modal testing - Bottom of page */}
-      <div style={{ 
-        position: 'fixed', 
-        bottom: '20px', 
-        right: '20px', 
-        zIndex: 10000,
-        display: 'flex',
-        gap: '10px'
-      }}>
-        <button
-          onClick={() => {
-            setPopupResult({
-              type: 'win',
-              amount: 500,
-              totalWinnings: 500,
-              openPrice: 86334.66,
-              closePrice: 86347.02,
-              round1Result: 'up',
-              round2Result: 'down',
-              round3Result: 'up'
-            });
-            setShowResultPopup(true);
-          }}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-          }}
-        >
-          Win Modal
-        </button>
-        
-        <button
-          onClick={() => {
-            setPopupResult({
-              type: 'loss',
-              amount: 300,
-              openPrice: 86334.66,
-              closePrice: 86300.15,
-              round1Result: 'down',
-              round2Result: 'up',
-              round3Result: 'down'
-            });
-            setShowResultPopup(true);
-          }}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#F44336',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-          }}
-        >
-          Lose Modal
-        </button>
-      </div>
 
       {/* Result Popup - SIMPLIFIED VERSION */}
       {showResultPopup && popupResult && (

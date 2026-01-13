@@ -69,6 +69,7 @@
   --text-modal: #C7D0DD;            /* Modal text color */
   --text-glow-up: #00AD62;          /* UP text with glow effect (Binance Green) */
   --text-glow-down: #EC2A37;        /* DOWN text with glow effect (Custom Red) */
+  --text-select-yellow: #F3BA2F;        /* DOWN text with glow effect (Custom Red) */
   
   /* ===== BORDER COLORS ===== */
   --border-color: #444444;          /* Default border */
