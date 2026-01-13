@@ -1,7 +1,7 @@
 // src/components/ui/ConnectionStatus.jsx
 
 import React, { useState, useEffect } from 'react';
-import './ConnectionStatus.css';
+import '../BTCChart/styles/ConnectionStatus.css';
 
 /**
  * Connection status notification component

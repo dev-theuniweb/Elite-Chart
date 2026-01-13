@@ -115,163 +115,6 @@
   border-color: #fbbf24;
 }
 
-/* Trading Trend Section */
-.trading-trend-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.trading-trend-label {
-  font-size: 12px;
-  color: #8e92a3;
-  font-weight: 400;
-}
-
-.trading-trend-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.trend-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 6px;
-  background: #0f1118;
-  border: 1px solid #2a2e39;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  outline: none; /* Remove default browser focus outline */
-}
-
-.trend-button:focus {
-  outline: none; /* Ensure no focus outline */
-}
-
-.trend-button:hover:not(:disabled) {
-  border-color: #fbbf24;
-  transform: translateY(-2px);
-}
-
-.trend-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.trend-button.trend-up {
-  border-color: #10b981;
-}
-
-.trend-button.trend-up:hover:not(:disabled) {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
-}
-
-.trend-button.trend-down {
-  border-color: #ef4444;
-}
-
-.trend-button.trend-down:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-}
-
-/* Selected state for trend buttons */
-.trend-button.selected.trend-up {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  border-width: 2px;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
-  animation: pulse-green 2s ease-in-out infinite;
-}
-
-.trend-button.selected.trend-down {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: #ef4444;
-  border-width: 2px;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
-  animation: pulse-red 2s ease-in-out infinite;
-}
-
-/* Pulse animations for selected buttons */
-@keyframes pulse-green {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-    transform: scale(1.02);
-  }
-}
-
-@keyframes pulse-red {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
-    transform: scale(1.02);
-  }
-}
-
-.trend-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.trend-dots {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* Candlestick style - vertical line with rectangle body */
-.trend-dots .dot {
-  position: relative;
-  width: 2px;
-  height: 25px;
-  border-radius: 0;
-}
-
-/* Candlestick wick (thin vertical line) */
-.trend-dots .dot::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  width: 1px;
-  height: 100%;
-  background-color: inherit;
-}
-
-/* Candlestick body (thick rectangle in middle) */
-.trend-dots .dot::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 15px;
-  background-color: inherit;
-}
-
-.trend-dots .dot.green {
-  background-color: #10b981;
-}
-
-.trend-dots .dot.red {
-  background-color: #ef4444;
-}
-
 /* Buy Now Button */
 .trading-buy-button {
   width: 100%;
@@ -368,6 +211,117 @@
 
 .btc-chart-container .connection-status .status-indicator.connecting {
   animation: pulse 1.5s infinite;
+}
+
+/* ========================================
+   GAME MODE TABS
+   ======================================== */
+
+/* ========================================
+   GAME MODE DROPDOWN (CUSTOM)
+   ======================================== */
+
+.btc-game-mode-selector {
+  position: absolute;
+  top: 30px;
+  right: 205px;
+  z-index: 100;
+}
+
+.game-mode-dropdown {
+  padding: 1px 10px 1px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--color-binance);
+  background-color: var(--bg-hover);
+  color: var(--text-select-yellow);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  outline: none;
+  transition: all 0.2s ease;
+  width: 75px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  user-select: none;
+}
+
+.game-mode-dropdown.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game-mode-dropdown:hover:not(.disabled) {
+  background-color: var(--border-color-hover);
+}
+
+.game-mode-dropdown-label {
+  flex: 1;
+}
+
+.game-mode-dropdown-arrow {
+  font-size: 10px;
+  color: #fbbf24;
+  transition: transform 0.2s ease;
+}
+
+.game-mode-dropdown.open .game-mode-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.game-mode-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: #1a1d26;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: dropdownSlideDown 0.2s ease;
+}
+
+@keyframes dropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.game-mode-dropdown-option {
+  padding: 5px 10px;
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.game-mode-dropdown-option:hover {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.game-mode-dropdown-option.selected {
+  background: var(--color-binance);
+  color: #1a1d26;
+  font-weight: 700;
+}
+
+.game-mode-dropdown-option.selected:hover {
+  background: var(--color-binance);
 }
 
 /* ========================================
