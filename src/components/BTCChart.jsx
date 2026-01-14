@@ -221,7 +221,7 @@ const getSmoothPath = (points) => {
 const formatNumber = (num) =>
   num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, selectedTrend, setSelectedTrend }) => {
+const BTCChart = ({ memberId, betAmount, setBetAmount, selectedTrend, setSelectedTrend }) => {
   
   // Raw data storage (always 1-second intervals)
   const [rawData, setRawData] = useState(() => {
@@ -715,7 +715,12 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
   }, [open1Min, scaleY]);
 
   // Effects
-  
+     useEffect(() => {
+          if (memberId) {
+               connectToGameEngine().then();
+          }
+     }, [memberId]);
+
   // ✅ Optimized: Aggregate data with reduced logging and smart updates
   useEffect(() => {
     const config = TIMEFRAME_CONFIG[selectedTimeframe];
@@ -834,7 +839,7 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
     const fetchGameConfig = async () => {
       try {
         console.log('🎮 [API] Fetching game configuration...');
-        const response = await fetch('/api/v1/game/get/6');
+        const response = await fetch('https://api.iiifleche.io/api/v1/game/get/6');
         
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
@@ -1093,7 +1098,8 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
 
   // 🎮 Game Engine SignalR Connection
   const connectToGameEngine = async () => {
-    if (!effectiveMemberId || !effectiveMemberId.trim()) {
+  /** REMARK: remove !effectiveMemberId.trim() as will cause error*/
+    if (!effectiveMemberId) {
       alert('Please enter Member ID!');
       return;
     }
@@ -1432,18 +1438,23 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
       BetNumber: betNumber,
       BetAmount: parseFloat(betAmount),
       OrderDate: new Date().toISOString(),
-      OrderPrice: currentPrice
+               OrderPrice: currentPrice,
+               /**REMARK: missing this key*/
+               Currenty:"",
+               Symbol:"BTCUSDT",
+               DrawType: 1,
+               InsuranceID: 0,
     };
 
     console.log(`📤 Creating order for ${currentGameMode.name} (GameID: ${currentGameMode.id}):`, orderRequest);
 
     try {
       // If parent provided handleCreateOrder, use it (lifted state architecture)
-      if (handleCreateOrder && typeof handleCreateOrder === 'function') {
-        console.log('📤 [LIFTED STATE] Using parent handleCreateOrder');
-        await handleCreateOrder(orderRequest);
-        return;
-      }
+      // if (handleCreateOrder && typeof handleCreateOrder === 'function') {
+      //   console.log('📤 [LIFTED STATE] Using parent handleCreateOrder');
+      //   await handleCreateOrder(orderRequest);
+      //   return;
+      // }
 
       // Otherwise, use game engine connection (original architecture)
       if (!gameEngineConnectionRef.current || !isGameEngineConnected) {
