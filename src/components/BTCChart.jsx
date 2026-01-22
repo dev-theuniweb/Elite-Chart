@@ -221,7 +221,7 @@ const getSmoothPath = (points) => {
 const formatNumber = (num) =>
   num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, selectedTrend, setSelectedTrend }) => {
+const BTCChart = ({ memberId, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange }) => {
   
   // Raw data storage (always 1-second intervals)
   const [rawData, setRawData] = useState(() => {
@@ -382,6 +382,29 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
     round3Price: 0
   });
   
+  // Insurance state - store transactionId and guid for insurance purchase
+  const [orderTransactionData, setOrderTransactionData] = useState({
+    transactionId: null,
+    guid: null
+  });
+  const [isInsurancePurchased, setIsInsurancePurchased] = useState(false);
+  
+  // Insurance data from backend (Section 1 & 2)
+  const [insuranceData, setInsuranceData] = useState({
+    section1: {
+      isInsured: false,
+      id: null,
+      percent: 0,
+      amount: 0
+    },
+    section2: {
+      isInsured: false,
+      id: null,
+      percent: 0,
+      amount: 0
+    }
+  });
+  
   // Insurance notification - single message only
   const [currentInsuranceMessage, setCurrentInsuranceMessage] = useState(null);
   const [isInsuranceFadingOut, setIsInsuranceFadingOut] = useState(false);
@@ -438,6 +461,9 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
   const [payoutPercent, setPayoutPercent] = useState(null);
   const [minAmount, setMinAmount] = useState('10.00');
   const [maxAmount, setMaxAmount] = useState('100.00');
+  const [payoutData, setPayoutData] = useState({}); // Store payout multipliers mapped to trend codes
+  const [currentPayoutText, setCurrentPayoutText] = useState(null); // Store dynamic payout text from OrderUpdate (e.g., "7.1 X × 4.9 X × 3.4")
+  const [isPayoutRefreshing, setIsPayoutRefreshing] = useState(false); // Track if payout is being refreshed (block betting during :57-:03)
 
   // Legacy ref synchronization removed - using bettingRounds state instead
 
@@ -715,6 +741,11 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
   }, [open1Min, scaleY]);
 
   // Effects
+  useEffect(() => {
+    if (memberId) {
+      connectToGameEngine().then();
+    }
+  }, [memberId]);
   
   // ✅ Optimized: Aggregate data with reduced logging and smart updates
   useEffect(() => {
@@ -829,19 +860,53 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
     return () => clearTimeout(timer);
   }, []);
   
+  // Check every second if we're in payout refresh window (:57-:03)
+  useEffect(() => {
+    const checkPayoutRefresh = () => {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      
+      // Block betting during :57, :58, :59, :00, :01, :02, :03 (7-second window)
+      const isRefreshWindow = seconds >= 57 || seconds <= 3;
+      
+      if (isRefreshWindow !== isPayoutRefreshing) {
+        setIsPayoutRefreshing(isRefreshWindow);
+        if (isRefreshWindow) {
+          console.log('🔄 Payout refreshing - betting blocked');
+        } else {
+          console.log('✅ Payout refresh complete - betting enabled');
+        }
+      }
+    };
+    
+    // Check immediately and then every second
+    checkPayoutRefresh();
+    const interval = setInterval(checkPayoutRefresh, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isPayoutRefreshing]);
+  
   // Fetch game configuration on mount
   useEffect(() => {
     const fetchGameConfig = async () => {
       try {
         console.log('🎮 [API] Fetching game configuration...');
-        const response = await fetch('/api/v1/game/get/6');
+        const response = await fetch('https://api.iiifleche.io/api/v1/game/get/6', {
+          headers: {
+            'Authorization': 'Bearer DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL'
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log('📊 [API] Game config received:', data);
+        const response_data = await response.json();
+        console.log('📊 [API] Game config received:', response_data);
+        
+        // Extract the actual data from the wrapper
+        const data = response_data.Data || response_data;
+        console.log('📊 [API] Actual game data:', data);
         
         // Parse trendsName into trend objects
         if (data.trendsName) {
@@ -905,11 +970,27 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
           console.log(`📈 [API] Payout percent: ${data.payoutPercent}%`);
         }
         
+        // Parse Payout array and create mapping
+        if (data.Payout && Array.isArray(data.Payout) && data.Payout.length > 0) {
+          const payoutMapping = {};
+          data.Payout.forEach(item => {
+            if (item.BetNumber && item.PayoutPercent) {
+              payoutMapping[item.BetNumber] = item.PayoutPercent;
+            }
+          });
+          setPayoutData(payoutMapping);
+          console.log('💰 [API] Payout multipliers:', payoutMapping);
+        } else {
+          console.log('⚠️ [API] No Payout array in response');
+          setPayoutData({});
+        }
+        
       } catch (error) {
         console.error('❌ [API] Failed to fetch game config:', error);
         // Use game mode patterns on error (don't override)
         console.log('⚠️ [API] Error fetching config, using game mode patterns');
         setTrendsList([]);
+        setPayoutData({});
       }
     };
     
@@ -1049,7 +1130,12 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
     });
     setPurchasedInsurances(new Set());
     setCurrentInsuranceMessage(null);
-  }, [currentOrder]);
+    
+    // Notify parent component of game mode change - pass both key and mode object
+    if (onGameModeChange && typeof onGameModeChange === 'function') {
+      onGameModeChange(modeKey, newMode);
+    }
+  }, [currentOrder, onGameModeChange]);
 
   // 🎮 Battle Pass - Purchase Handler
   const handlePurchaseBattlePass = useCallback((passType) => {
@@ -1093,7 +1179,8 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
 
   // 🎮 Game Engine SignalR Connection
   const connectToGameEngine = async () => {
-    if (!effectiveMemberId || !effectiveMemberId.trim()) {
+    /** REMARK: remove !effectiveMemberId.trim() as will cause error*/
+    if (!effectiveMemberId) {
       alert('Please enter Member ID!');
       return;
     }
@@ -1101,130 +1188,242 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
     try {
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(`https://ge.iiifleche.io/hubs/order?memberId=${effectiveMemberId}`, {
-          withCredentials: false
+          withCredentials: false,
+          skipNegotiation: true,
+          transport: signalR.HttpTransportType.WebSockets
         })
         .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Information)
         .build();
 
       // Hub listeners
       connection.on("OrderCreated", (data) => {
-        if (data.isSuccess) {
-          console.log(`✅ Order created: ${JSON.stringify(data)}`);
+        try {
+          console.log(`📥 OrderCreated received: ${JSON.stringify(data)}`);
           
-          // 🎯 Start 90s countdown timer
-          const currentPrice = currentPriceRef.current || latest.value;
-          setUserTimer({
-            timeLeft: 90,
-            isActive: true,
-            betId: data.orderId || Date.now(),
-            direction: currentOrder?.betNumber?.toLowerCase().includes('u') ? 'up' : 'down',
-            status: 'active',
-            startPrice: currentPrice,
-            price30s: null,
-            price60s: null,
-            price90s: null,
-            phase30sResult: null,
-            phase60sResult: null,
-            phase90sResult: null,
-            startTime: new Date(),
-            time30s: null,
-            time60s: null,
-            time90s: null,
-            betPrice: currentPrice
+          // Check for failure first
+          if (data.isSuccess === false) {
+            console.log(`❌ Order failed: ${data.message}`);
+            alert(`Order failed: ${data.message}`);
+            return;
+          }
+        
+        // Process successful order (isSuccess = true or undefined means success)
+        console.log(`✅ Order created successfully`);
+        
+        // 💾 Save transactionId and orderGuid for insurance
+        if (data.transactionId && data.orderGuid) {
+          setOrderTransactionData({
+            transactionId: data.transactionId,
+            guid: data.orderGuid
           });
-          
-          console.log(`⏱️ Timer started! 90s countdown begins. Start price: $${currentPrice}`);
-        } else {
-          console.log(`❌ Order failed: ${data.message}`);
-          alert(`Order failed: ${data.message}`);
+          setIsInsurancePurchased(false); // Reset insurance status for new order
+          console.log(`💾 Saved transaction data - ID: ${data.transactionId}, GUID: ${data.orderGuid}`);
+        }
+        
+        // 🎯 Start 90s countdown timer
+        const currentPrice = currentPriceRef.current || latest.value;
+        setUserTimer({
+          timeLeft: 90,
+          isActive: true,
+          betId: data.orderId || Date.now(),
+          direction: currentOrder?.betNumber?.toLowerCase().includes('u') ? 'up' : 'down',
+          status: 'active',
+          startPrice: currentPrice,
+          price30s: null,
+          price60s: null,
+          price90s: null,
+          phase30sResult: null,
+          phase60sResult: null,
+          phase90sResult: null,
+          startTime: new Date(),
+          time30s: null,
+          time60s: null,
+          time90s: null,
+          betPrice: currentPrice
+        });
+        
+        console.log(`⏱️ Timer started! 90s countdown begins. Start price: $${currentPrice}`);
+        } catch (error) {
+          console.error('❌ Error processing OrderCreated:', error);
         }
       });
 
       connection.on("OrderUpdate", (data) => {
-        console.log(`📈 Order Update: ${JSON.stringify(data)}`);
-        
-        // Handle insurance messages - show only latest one (Only in Insurance Mode)
-        if (currentGameMode.hasInsurance && data.event === "INSURANCE" && data.messages && data.messages.length > 0) {
-          // Get the last insurance message from the array
-          const insuranceMsg = data.messages.find(msg => msg.mainType === "Insurance");
+        try {
+          console.log(`📈 Order Update: ${JSON.stringify(data)}`);
           
-          if (insuranceMsg) {
-            const newInsurance = {
-              id: 'insurance-badge', // Stable key - always the same
-              subType: insuranceMsg.subType, // "Section 1" or "Section 2"
-              displayPosition: insuranceMsg.displayPosition,
-              messageContent: insuranceMsg.messageContent,
-              timestamp: Date.now()
-            };
-            
-            // Clear existing timeout if any
-            if (insuranceTimeoutRef.current) {
-              clearTimeout(insuranceTimeoutRef.current);
-            }
-            
-            // If there's a current message, fade it out first
-            if (currentInsuranceMessage) {
-              setIsInsuranceFadingOut(true);
-              setTimeout(() => {
-                setIsInsuranceFadingOut(false);
-                setCurrentInsuranceMessage(newInsurance);
-              }, 200); // 200ms fade out
-            } else {
-              // No current message, show immediately
-              setCurrentInsuranceMessage(newInsurance);
-            }
-            
-            console.log(`🛡️ Insurance: ${insuranceMsg.subType} - ${insuranceMsg.messageContent}`);
+          // 💾 Save transactionId and orderGuid for insurance
+          if (data.transactionId && data.orderGuid) {
+            setOrderTransactionData({
+              transactionId: data.transactionId,
+              guid: data.orderGuid
+            });
+            console.log(`💾 Transaction data - ID: ${data.transactionId}, GUID: ${data.orderGuid}`);
           }
+          
+          // 🛡️ Capture insurance data from backend
+          if (data.insuranceSection1 !== undefined || data.insuranceSection2 !== undefined) {
+            setInsuranceData({
+              section1: {
+                isInsured: data.insuranceSection1 || false,
+                id: data.insuranceSection1Id || null,
+                percent: data.insuranceSection1Percent || 0,
+                amount: data.insuranceSection1Amount || 0
+              },
+              section2: {
+                isInsured: data.insuranceSection2 || false,
+                id: data.insuranceSection2Id || null,
+                percent: data.insuranceSection2Percent || 0,
+                amount: data.insuranceSection2Amount || 0
+              }
+            });
+            
+            // Update purchased insurances set
+            const newPurchased = new Set();
+            if (data.insuranceSection1) newPurchased.add('Section 1');
+            if (data.insuranceSection2) newPurchased.add('Section 2');
+            setPurchasedInsurances(newPurchased);
+            
+            console.log(`🛡️ Insurance Status - Section 1: ${data.insuranceSection1 ? '✅' : '❌'} (${data.insuranceSection1Percent * 100}%, ${data.insuranceSection1Amount} GMCHIP)`);
+            console.log(`🛡️ Insurance Status - Section 2: ${data.insuranceSection2 ? '✅' : '❌'} (${data.insuranceSection2Percent * 100}%, ${data.insuranceSection2Amount} GMCHIP)`);
+          }
+          
+          // Handle insurance messages - show only latest one (Only in Insurance Mode)
+          if (currentGameMode.hasInsurance && data.event === "INSURANCE" && data.messages && data.messages.length > 0) {
+            // Get the last insurance message from the array
+            const insuranceMsg = data.messages.find(msg => msg.mainType === "Insurance");
+            
+            if (insuranceMsg) {
+              // ✅ Validation: Don't show Section 2 if Section 1 is not purchased
+              // Use backend data directly since state hasn't updated yet
+              if (insuranceMsg.subType === 'Section 2' && !data.insuranceSection1) {
+                console.log('⚠️ [INSURANCE] Section 2 blocked - Section 1 must be purchased first');
+                return; // Don't show Section 2 message
+              }
+              
+              const newInsurance = {
+                id: 'insurance-badge', // Stable key - always the same
+                subType: insuranceMsg.subType, // "Section 1" or "Section 2"
+                displayPosition: insuranceMsg.displayPosition,
+                messageContent: insuranceMsg.messageContent,
+                timestamp: Date.now()
+              };
+              
+              // Clear existing timeout if any
+              if (insuranceTimeoutRef.current) {
+                clearTimeout(insuranceTimeoutRef.current);
+              }
+              
+              // If there's a current message, fade it out first
+              if (currentInsuranceMessage) {
+                setIsInsuranceFadingOut(true);
+                setTimeout(() => {
+                  setIsInsuranceFadingOut(false);
+                  setCurrentInsuranceMessage(newInsurance);
+                }, 200); // 200ms fade out
+              } else {
+                // No current message, show immediately
+                setCurrentInsuranceMessage(newInsurance);
+              }
+              
+              console.log(`🛡️ Insurance: ${insuranceMsg.subType} - ${insuranceMsg.messageContent}`);
+            }
+          }
+          
+          // Capture payoutText for dynamic payout display
+          if (data.payoutText) {
+            setCurrentPayoutText(data.payoutText);
+            console.log(`💰 Updated payoutText from OrderUpdate: ${data.payoutText}`);
+          }
+          
+          // Update orderPrice from first OrderUpdate if available
+          if (data.orderPrice && data.orderPrice > 0) {
+            setCurrentOrder(prev => ({
+              ...prev,
+              orderPrice: data.orderPrice
+            }));
+            console.log(`📊 Updated 30s open price from API: ${data.orderPrice}`);
+          }
+          
+          // Helper function to normalize result from API format to display format
+          const normalizeResult = (result) => {
+            if (!result || result === "") return null;
+            const normalized = result.toUpperCase();
+            if (normalized === "UP" || normalized === "WIN") return "up";
+            if (normalized === "DOWN" || normalized === "LOSE") return "down";
+            if (normalized === "SAME" || normalized === "TIE" || normalized === "DRAW") return "tie";
+            return normalized.toLowerCase(); // fallback to lowercase
+          };
+          
+          // Update round results progressively with normalized values
+          if (data.round1Result !== undefined && data.round1Result !== "") {
+            setOrderResults(prev => ({
+              ...prev,
+              round1Result: normalizeResult(data.round1Result),
+              round1Price: data.round1Price
+            }));
+            console.log(`✅ Round 1 Result: ${data.round1Result} → ${normalizeResult(data.round1Result)}`);
+          }
+          if (data.round2Result !== undefined && data.round2Result !== "") {
+            setOrderResults(prev => ({
+              ...prev,
+              round2Result: normalizeResult(data.round2Result),
+              round2Price: data.round2Price
+            }));
+            console.log(`✅ Round 2 Result: ${data.round2Result} → ${normalizeResult(data.round2Result)}`);
+          }
+          if (data.round3Result !== undefined && data.round3Result !== "") {
+            setOrderResults(prev => ({
+              ...prev,
+              round3Result: normalizeResult(data.round3Result),
+              round3Price: data.round3Price
+            }));
+            console.log(`✅ Round 3 Result: ${data.round3Result} → ${normalizeResult(data.round3Result)}`);
+          }
+        } catch (error) {
+          console.error('❌ Error processing OrderUpdate:', error);
         }
+      });
+
+      connection.on("InsuranceCreated", (data) => {
+        try {
+          console.log('🛡️ InsuranceCreated received:', data);
+          if (data.isSuccess) {
+            console.log(`✅ Insurance created: ${JSON.stringify(data)}`);
+            
+            // Mark the current section as purchased
+            if (currentInsuranceMessage) {
+              setPurchasedInsurances(prev => new Set([...prev, currentInsuranceMessage.subType]));
+              console.log(`🛡️ Marked ${currentInsuranceMessage.subType} as purchased`);
+            }
+            
+            // Insurance purchased successfully - no popup needed, just log to console
+            console.log(`✅ Insurance purchased successfully! ${data.message || 'Your bet is now insured.'}`);
+          } else {
+            console.log(`❌ Insurance failed: ${data.message}`);
+            alert(`❌ Insurance purchase failed: ${data.message}`);
+          }
+        } catch (error) {
+          console.error('❌ Error processing InsuranceCreated:', error);
+        }
+      });
+
+      connection.on("Error", (msg) => {
+        try {
+        console.log('❌ Error received:', msg);
+        console.log(`❌ Error: ${JSON.stringify(msg)}`);
         
-        // Update orderPrice from first OrderUpdate if available
-        if (data.orderPrice && data.orderPrice > 0) {
-          setCurrentOrder(prev => ({
-            ...prev,
-            orderPrice: data.orderPrice
-          }));
-          console.log(`📊 Updated 30s open price from API: ${data.orderPrice}`);
-        }
-        
-        // Helper function to normalize result from API format to display format
-        const normalizeResult = (result) => {
-          if (!result || result === "") return null;
-          const normalized = result.toUpperCase();
-          if (normalized === "UP" || normalized === "WIN") return "up";
-          if (normalized === "DOWN" || normalized === "LOSE") return "down";
-          if (normalized === "SAME" || normalized === "TIE" || normalized === "DRAW") return "tie";
-          return normalized.toLowerCase(); // fallback to lowercase
-        };
-        
-        // Update round results progressively with normalized values
-        if (data.round1Result !== undefined && data.round1Result !== "") {
-          setOrderResults(prev => ({
-            ...prev,
-            round1Result: normalizeResult(data.round1Result),
-            round1Price: data.round1Price
-          }));
-          console.log(`✅ Round 1 Result: ${data.round1Result} → ${normalizeResult(data.round1Result)}`);
-        }
-        if (data.round2Result !== undefined && data.round2Result !== "") {
-          setOrderResults(prev => ({
-            ...prev,
-            round2Result: normalizeResult(data.round2Result),
-            round2Price: data.round2Price
-          }));
-          console.log(`✅ Round 2 Result: ${data.round2Result} → ${normalizeResult(data.round2Result)}`);
-        }
-        if (data.round3Result !== undefined && data.round3Result !== "") {
-          setOrderResults(prev => ({
-            ...prev,
-            round3Result: normalizeResult(data.round3Result),
-            round3Price: data.round3Price
-          }));
-          console.log(`✅ Round 3 Result: ${data.round3Result} → ${normalizeResult(data.round3Result)}`);
+        // Show error alert to user
+        const errorMessage = msg.message || msg.Message || JSON.stringify(msg);
+        alert(`❌ Error: ${errorMessage}`);
+        } catch (error) {
+          console.error('❌ Error processing Error message:', error);
         }
       });
 
       connection.on("OrderResult", (data) => {
+        try {
         console.log(`🏁 Final Result: ${JSON.stringify(data)}`);
         console.log(`🛡️ Active insurances at payout: ${Array.from(purchasedInsurances).join(', ') || 'none'}`);
         
@@ -1248,7 +1447,8 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
         // Calculate payout amount based on result and game mode
         let payout = 0;
         if (isWin) {
-          payout = betAmountFromAPI; // WIN: full bet amount returned (1:1 ratio)
+          // WIN: Use backend's winLoseAmount (multiplied winnings) instead of bet amount
+          payout = data.winLoseAmount || betAmountFromAPI; // Fallback to bet amount if winLoseAmount not provided
           
           // Apply insurance deductions if in Insurance Mode
           if (currentGameMode.hasInsurance) {
@@ -1377,24 +1577,22 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
         // Clear phase icons, order state, and purchased insurances after 8 seconds to allow users to see all results
         setTimeout(() => {
           setCurrentOrder(null);
-          setOrderResults({
-            round1Result: null,
-            round2Result: null,
-            round3Result: null,
-            round1Price: 0,
-            round2Price: 0,
-            round3Price: 0
-          });
-          // Clear purchased insurances when game ends
-          setPurchasedInsurances(prev => {
-            console.log(`🧹 Clearing purchased insurances: ${Array.from(prev).join(', ') || 'none'}`);
-            return new Set();
-          });
+          setPurchasedInsurances(new Set()); // Clear insurance badges
+          setCurrentInsuranceMessage(null); // Clear any active insurance message
+          setCurrentPayoutText(null); // Clear payout text for next bet
+          console.log(`🧹 Cleared currentOrder and insurances - ready for next bet`);
         }, 8000);
+        } catch (error) {
+          console.error('❌ Error processing OrderResult:', error);
+        }
       });
 
       connection.on("Pong", (msg) => {
-        console.log(`🏓 Pong received: ${msg}`);
+        try {
+          console.log(`🏓 Pong received: ${msg}`);
+        } catch (error) {
+          console.error('❌ Error processing Pong:', error);
+        }
       });
 
       connection.onclose(() => {
@@ -1417,6 +1615,26 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
 
   // Create order function for new betting system
   const createOrder = async (betNumber) => {
+    // Reset previous order state before creating new order
+    setOrderTransactionData({
+      transactionId: null,
+      guid: null
+    });
+    setIsInsurancePurchased(false);
+    setInsuranceData({
+      section1: { isInsured: false, id: null, percent: 0, amount: 0 },
+      section2: { isInsured: false, id: null, percent: 0, amount: 0 }
+    });
+    setPurchasedInsurances(new Set());
+    setOrderResults({
+      round1Result: null,
+      round2Result: null,
+      round3Result: null,
+      round1Price: 0,
+      round2Price: 0,
+      round3Price: 0
+    });
+    
     // Validate bet amount
     if (!betAmount || betAmount <= 0 || betAmount > balance) {
       alert(`Invalid bet amount. Please enter an amount between 1 and ${balance}`);
@@ -1432,18 +1650,22 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
       BetNumber: betNumber,
       BetAmount: parseFloat(betAmount),
       OrderDate: new Date().toISOString(),
-      OrderPrice: currentPrice
+      OrderPrice: currentPrice,
+      /**REMARK: missing this key*/
+      Currency: "",
+      Symbol: "BTCUSDT",
+      DrawType: 1,
+      InsuranceID: 0,
     };
 
     console.log(`📤 Creating order for ${currentGameMode.name} (GameID: ${currentGameMode.id}):`, orderRequest);
 
     try {
-      // If parent provided handleCreateOrder, use it (lifted state architecture)
-      if (handleCreateOrder && typeof handleCreateOrder === 'function') {
-        console.log('📤 [LIFTED STATE] Using parent handleCreateOrder');
-        await handleCreateOrder(orderRequest);
-        return;
-      }
+      // if (handleCreateOrder && typeof handleCreateOrder === 'function') {
+      //   console.log('📤 [LIFTED STATE] Using parent handleCreateOrder');
+      //   await handleCreateOrder(orderRequest);
+      //   return;
+      // }
 
       // Otherwise, use game engine connection (original architecture)
       if (!gameEngineConnectionRef.current || !isGameEngineConnected) {
@@ -1473,15 +1695,7 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
       // Clear processed order ID for new bet
       processedOrderIdRef.current = null;
       
-      // Reset order results for new bet
-      setOrderResults({
-        round1Result: null,
-        round2Result: null,
-        round3Result: null,
-        round1Price: 0,
-        round2Price: 0,
-        round3Price: 0
-      });
+      // Note: State resets are done at the start of createOrder function
     } catch (err) {
       console.error("❌ Error creating order:", err);
       alert(`Error creating order: ${err.message}`);
@@ -1496,6 +1710,43 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
       }
     };
   }, []);
+
+  // 🛡️ Create Insurance Function (Backend Integration)
+  const createInsurance = async () => {
+    // Validate prerequisites
+    if (!orderTransactionData.transactionId || !orderTransactionData.guid) {
+      alert('⚠️ No active order to insure. Please place a bet first.');
+      return;
+    }
+    
+    // Check if this specific section has already been purchased
+    if (currentInsuranceMessage && purchasedInsurances.has(currentInsuranceMessage.subType)) {
+      alert(`⚠️ ${currentInsuranceMessage.subType} insurance already purchased for this bet.`);
+      return;
+    }
+    
+    if (!gameEngineConnectionRef.current || !isGameEngineConnected) {
+      alert('⚠️ Not connected to game engine. Please connect first.');
+      return;
+    }
+    
+    try {
+      const request = {
+        MemberId: effectiveMemberId ? parseInt(effectiveMemberId) : null,
+        OrderGuiId: orderTransactionData.guid,
+        TransactionId: orderTransactionData.transactionId
+      };
+      
+      console.log(`📤 Sending CreateInsurance: ${JSON.stringify(request)}`);
+      
+      await gameEngineConnectionRef.current.invoke('CreateInsurance', request);
+      console.log('✅ CreateInsurance invoked successfully');
+      
+    } catch (err) {
+      console.error(`❌ Error invoking CreateInsurance: ${err.message}`, err);
+      alert(`Error purchasing insurance: ${err.message}`);
+    }
+  };
 
   // SignalR connection effect with improved error handling
   useEffect(() => {
@@ -1630,59 +1881,80 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
     };
 
     connection.on("ReceivePrice", (msg) => {
-      // Stop fallback when we receive real data
-      stopFallbackData();
-
-      if (
-        msg.source === "stream" &&
-        msg.data.symbol === "BTCUSDT" &&
-        msg.data.closePrice &&
-        msg.data.openPrice
-      ) {
-        const close = Number(msg.data.closePrice.replace(/,/g, ""));
-        const open = Number(msg.data.openPrice.replace(/,/g, ""));
-
-        if (!isNaN(close) && !isNaN(open)) {
-          // ✅ Simply add new price data - no clearing, no replacing
-          // Real data will naturally replace mock data as it scrolls off
-          addNewPriceData(close);
-          
-          setOpen1Min(open);
-          setClose1Min(close);
-        }
-      }
-
-      // Only add to resultHistory if msg.source === "candle"
-      if (
-        msg.source === "candle" &&
-        msg.data.symbol === "BTCUSDT" &&
-        msg.data.closePrice &&
-        msg.data.openPrice
-      ) {
-        // Create unique identifier for this candle
-        const candleId = `${msg.data.dateTime}-${msg.data.openPrice}-${msg.data.closePrice}`;
-        
-        // Check if we've already processed this exact candle
-        if (lastProcessedCandleRef.current === candleId) {
-          console.log(`🔄 [SignalR] Skipping duplicate candle: ${candleId}`);
+      try {
+        // Check if connection is still valid before processing
+        if (connection.state !== signalR.HubConnectionState.Connected) {
+          console.warn('⚠️ Skipping message - connection not in Connected state');
           return;
         }
-        
-        // Update last processed candle
-        lastProcessedCandleRef.current = candleId;
-        
-        console.log(`📊 [SignalR] Received candle data: ${msg.data.trend.toUpperCase()} (${msg.data.openPrice} → ${msg.data.closePrice}) [${candleId}]`);
-        
-        // Trend generation removed - will be rebuilt with proper timeframe-specific logic
-        
-        // Betting resolution is now handled automatically by the multi-timeframe betting rounds effect
-        // No manual resolution needed here as rounds close automatically based on timers
+
+        // Stop fallback when we receive real data
+        stopFallbackData();
+
+        if (
+          msg.source === "stream" &&
+          msg.data.symbol === "BTCUSDT" &&
+          msg.data.closePrice &&
+          msg.data.openPrice
+        ) {
+          const close = Number(msg.data.closePrice.replace(/,/g, ""));
+          const open = Number(msg.data.openPrice.replace(/,/g, ""));
+
+          if (!isNaN(close) && !isNaN(open)) {
+            // ✅ Simply add new price data - no clearing, no replacing
+            // Real data will naturally replace mock data as it scrolls off
+            addNewPriceData(close);
+            
+            setOpen1Min(open);
+            setClose1Min(close);
+          }
+        }
+
+        // Only add to resultHistory if msg.source === "candle"
+        if (
+          msg.source === "candle" &&
+          msg.data.symbol === "BTCUSDT" &&
+          msg.data.closePrice &&
+          msg.data.openPrice
+        ) {
+          // Create unique identifier for this candle
+          const candleId = `${msg.data.dateTime}-${msg.data.openPrice}-${msg.data.closePrice}`;
+          
+          // Check if we've already processed this exact candle
+          if (lastProcessedCandleRef.current === candleId) {
+            console.log(`🔄 [SignalR] Skipping duplicate candle: ${candleId}`);
+            return;
+          }
+          
+          // Update last processed candle
+          lastProcessedCandleRef.current = candleId;
+          
+          console.log(`📊 [SignalR] Received candle data: ${msg.data.trend.toUpperCase()} (${msg.data.openPrice} → ${msg.data.closePrice}) [${candleId}]`);
+          
+          // Trend generation removed - will be rebuilt with proper timeframe-specific logic
+          
+          // Betting resolution is now handled automatically by the multi-timeframe betting rounds effect
+          // No manual resolution needed here as rounds close automatically based on timers
+        }
+      } catch (error) {
+        console.error('❌ Error processing ReceivePrice message:', error);
+        // Don't throw - just log and continue
       }
     });
 
     // Attempt to start connection with timeout
     const startConnection = async () => {
       try {
+        // Check if already connected or connecting
+        if (connection.state === signalR.HubConnectionState.Connected) {
+          console.log('ℹ️ Already connected to SignalR hub');
+          return;
+        }
+        if (connection.state === signalR.HubConnectionState.Connecting) {
+          console.log('ℹ️ Connection already in progress');
+          return;
+        }
+
         setConnectionStatus({
           status: 'connecting',
           message: 'Catching the Bitcoin stream...',
@@ -1731,8 +2003,17 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
 
     return () => {
       stopFallbackData();
-      if (connection.state === signalR.HubConnectionState.Connected) {
-        connection.stop();
+      
+      // Safely disconnect SignalR with error handling
+      try {
+        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+          console.log('🔌 Disconnecting SignalR connection...');
+          connection.stop().catch(err => {
+            console.warn('⚠️ Error stopping SignalR connection:', err.message);
+          });
+        }
+      } catch (error) {
+        console.warn('⚠️ Error during cleanup:', error.message);
       }
     };
   }, [addNewPriceData]);
@@ -2185,7 +2466,7 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
                 </span>
                 <button 
                   className="insurance-buy-btn"
-                  onClick={() => buyInsurance(currentInsuranceMessage)}
+                  onClick={createInsurance}
                 >
                   BUY
                 </button>
@@ -2412,6 +2693,9 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
             onTrendSelect={setSelectedTrend}
             isConnected={isGameEngineConnected}
             hasActiveOrder={currentOrder !== null}
+            payoutData={payoutData}
+            currentPayoutText={currentPayoutText}
+            insuranceData={insuranceData}
           />
 
           {/* Buy Now Button */}
@@ -2431,9 +2715,9 @@ const BTCChart = ({ memberId, handleCreateOrder, betAmount, setBetAmount, select
               // Keep selection visible after placing order (don't reset)
               // setSelectedTrend(null); 
             }}
-            disabled={!isGameEngineConnected || currentOrder !== null || !selectedTrend}
+            disabled={!isGameEngineConnected || currentOrder !== null || !selectedTrend || (currentOrder === null && isPayoutRefreshing)}
           >
-            Buy Now
+            {isPayoutRefreshing && currentOrder === null ? 'Refreshing payout...' : 'Buy Now'}
           </button>
 
           {/* 🎮 Battle Pass Panel - Hidden (backend not ready) */}
