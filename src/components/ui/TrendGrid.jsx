@@ -65,25 +65,35 @@ const TrendGrid = ({
       </div>
       
       <div className={`trading-trend-grid grid-${gridLayout}`}>
-        {patterns.map((pattern) => (
-          <button
-            key={pattern.code}
-            className={`trend-button trend-${pattern.type} ${
-              selectedTrend === pattern.code ? 'selected' : ''
-            }`}
-            onClick={() => pattern.enabled && onTrendSelect(pattern.code)}
-            disabled={!pattern.enabled || !isConnected || hasActiveOrder}
-            title={!pattern.enabled ? 'Coming soon' : pattern.label}
-            style={{ opacity: !isConnected || !pattern.enabled ? 0.5 : 1 }}
-          >
-            <div className="trend-label">{pattern.label}</div>
-            <div className="trend-dots">
-              {pattern.dots.map((dot, index) => (
-                <span key={index} className={`dot ${getCandleClass(dot)}`}></span>
-              ))}
-            </div>
-          </button>
-        ))}
+        {patterns.map((pattern) => {
+          // Get payout for this specific pattern
+          const patternPayout = payoutData[pattern.code] 
+            ? getPayout(payoutData[pattern.code]) 
+            : null;
+          
+          return (
+            <button
+              key={pattern.code}
+              className={`trend-button trend-${pattern.type} ${
+                selectedTrend === pattern.code ? 'selected' : ''
+              }`}
+              onClick={() => pattern.enabled && onTrendSelect(pattern.code)}
+              disabled={!pattern.enabled || !isConnected || hasActiveOrder}
+              title={!pattern.enabled ? 'Coming soon' : pattern.label}
+              style={{ opacity: !isConnected || !pattern.enabled ? 0.5 : 1 }}
+            >
+              <div className="trend-label">{pattern.label}</div>
+              <div className="trend-dots">
+                {pattern.dots.map((dot, index) => (
+                  <span key={index} className={`dot ${getCandleClass(dot)}`}></span>
+                ))}
+              </div>
+              {patternPayout && (
+                <div className="trend-payout">{patternPayout}</div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

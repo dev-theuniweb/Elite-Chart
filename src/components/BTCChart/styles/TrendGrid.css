@@ -147,6 +147,15 @@
   height: 30px;
 }
 
+/* Trend Payout Display */
+.trend-payout {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fbbf24;
+  text-align: center;
+  margin-top: 2px;
+}
+
 .trend-dots .dot {
   position: relative;
   width: 8px;

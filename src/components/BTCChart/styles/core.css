@@ -1755,8 +1755,8 @@ input[type="number"] {
 
 /* Game Results Section */
 .result-popup-game-results {
-  margin: 10px 0;
-  padding: 10px 0;
+  margin: 0;
+  padding: 0;
 }
 
 .game-results-title {
@@ -1972,7 +1972,7 @@ input[type="number"] {
   text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
   font-family: var(--font-family);
   padding: 15px 60px;
-  margin: 0 -60px;
+  margin:  0 -60px 20px -60px;
   width: calc(100% + 120px);
   display: block;
   text-align: center;
@@ -2299,6 +2299,8 @@ input[type="number"] {
   gap: 8px;
   pointer-events: auto;
   will-change: transform, opacity;
+  margin-bottom: 15px;
+  justify-content: center;
 }
 
 .insurance-badge {
@@ -2314,7 +2316,7 @@ input[type="number"] {
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
-  min-width: 180px;
+  min-width: auto;
   max-width: 300px;
   will-change: transform, opacity;
   transition: opacity 0.2s ease-out;
@@ -2325,10 +2327,13 @@ input[type="number"] {
   border-color: var(--color-up);
 }
 
+
 .insurance-badge.section-2 {
   background: rgba(246, 235, 20, 0.25);
   border-color: var(--color-warning);
 }
+
+
 
 .insurance-icon {
   width: 18px;
