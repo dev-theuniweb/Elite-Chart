@@ -14,7 +14,7 @@
     "@fortawesome/fontawesome-svg-core": "^7.0.1",
     "@fortawesome/free-solid-svg-icons": "^7.0.1",
     "@fortawesome/react-fontawesome": "^3.0.2",
-    "@microsoft/signalr": "^8.0.7",
+    "@microsoft/signalr": "^8.0.17",
     "compression": "^1.8.1",
     "express": "^5.2.1",
     "html2canvas": "^1.4.1",
