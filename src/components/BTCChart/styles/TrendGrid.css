@@ -7,12 +7,25 @@
   gap: 12px;
 }
 
+.trading-trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .trading-trend-label {
   font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+
+.trading-trend-payout {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
 }
 
 /* Trend Grid Layouts */
@@ -132,6 +145,15 @@
   align-items: center;
   justify-content: center;
   height: 30px;
+}
+
+/* Trend Payout Display */
+.trend-payout {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fbbf24;
+  text-align: center;
+  margin-top: 2px;
 }
 
 .trend-dots .dot {

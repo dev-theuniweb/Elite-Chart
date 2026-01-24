@@ -139,6 +139,73 @@
   transform: translateY(0);
 }
 
+.trading-buy-button:disabled {
+  background: #3a3a3a;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.trading-buy-button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Insurance Button */
+.trading-insurance-button {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.trading-insurance-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.trading-insurance-button:active {
+  transform: translateY(0);
+}
+
+.trading-insurance-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Insurance Status Badge */
+.insurance-status-badge {
+  width: 100%;
+  padding: 10px;
+  background: rgba(76, 175, 80, 0.2);
+  border: 2px solid #4caf50;
+  border-radius: 8px;
+  color: #4caf50;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 /* ========================================
    LAYOUT & CONTAINERS
    ======================================== */
@@ -1688,8 +1755,8 @@ input[type="number"] {
 
 /* Game Results Section */
 .result-popup-game-results {
-  margin: 10px 0;
-  padding: 10px 0;
+  margin: 0;
+  padding: 0;
 }
 
 .game-results-title {
@@ -1783,6 +1850,17 @@ input[type="number"] {
   background: linear-gradient(180deg, #888 0%, #555 100%);
   box-shadow: 0 0 20px rgba(136, 136, 136, 0.6);
   border: 1px solid #888;
+}
+
+/* Tie candle - Blue */
+.result-candle.tie {
+  color: #4a9eff;
+}
+
+.result-candle.tie .candle-body {
+  background: linear-gradient(180deg, #4a9eff 0%, #2563eb 100%);
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.6);
+  border: 1px solid #4a9eff;
 }
 
 .result-popup-subtitle {
@@ -1894,7 +1972,7 @@ input[type="number"] {
   text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
   font-family: var(--font-family);
   padding: 15px 60px;
-  margin: 0 -60px;
+  margin:  0 -60px 20px -60px;
   width: calc(100% + 120px);
   display: block;
   text-align: center;
@@ -2221,6 +2299,8 @@ input[type="number"] {
   gap: 8px;
   pointer-events: auto;
   will-change: transform, opacity;
+  margin-bottom: 15px;
+  justify-content: center;
 }
 
 .insurance-badge {
@@ -2236,7 +2316,7 @@ input[type="number"] {
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
-  min-width: 180px;
+  min-width: auto;
   max-width: 300px;
   will-change: transform, opacity;
   transition: opacity 0.2s ease-out;
@@ -2247,10 +2327,13 @@ input[type="number"] {
   border-color: var(--color-up);
 }
 
+
 .insurance-badge.section-2 {
   background: rgba(246, 235, 20, 0.25);
   border-color: var(--color-warning);
 }
+
+
 
 .insurance-icon {
   width: 18px;

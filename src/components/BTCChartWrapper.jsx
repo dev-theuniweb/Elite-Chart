@@ -6,10 +6,12 @@ import BTCChart from './BTCChart';
  * BTCChartWrapper - Parent component that manages lifted state
  * This matches the architecture used by the team member's implementation
  */
-const BTCChartWrapper = ({memberId="509"}) => {
+const BTCChartWrapper = ({
+  memberId="509",
+  bearerToken="DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL"
+}) => {
   const [state, setState] = useState({
-    /**REMARKS: memberid by api*/
-    // memberId: null, // Let BTCChart handle member authentication
+    memberId: memberId, // Use prop or default
     betAmount: '',
     selectedTrend: null,
   });
@@ -18,11 +20,9 @@ const BTCChartWrapper = ({memberId="509"}) => {
    * Handle order creation - integrated with backend API
    * @param {Object} orderRequest - Order details from BTCChart
    */
-
-  /**REMARKS: no more api create order, all by signal r */
   // const handleCreateOrder = async (orderRequest) => {
   //   console.log('📝 [ORDER] Creating order:', orderRequest);
-  //
+  //   
   //   try {
   //     // Prepare order data for backend API
   //     const orderData = {
@@ -41,7 +41,7 @@ const BTCChartWrapper = ({memberId="509"}) => {
   //
   //     // TODO: Replace with actual API call
   //     // const response = await DataSource.shared.postGameTransaction(orderData);
-  //
+  //     
   //     // Simulated API response for demo
   //     const response = await new Promise((resolve) => {
   //       setTimeout(() => {
@@ -58,7 +58,7 @@ const BTCChartWrapper = ({memberId="509"}) => {
   //     if (response.success) {
   //       console.log('✅ [ORDER] Success:', response);
   //       alert(`Order placed! ${response.Message}`);
-  //
+  //       
   //       // Reset bet selection after successful order
   //       setState(prev => ({
   //         ...prev,
@@ -70,6 +70,7 @@ const BTCChartWrapper = ({memberId="509"}) => {
   //       // fetchTransactionUntilResult();
   //     }
   //   } catch (error) {
+  //     console.error('❌ [ORDER] Failed:', error);
   //     console.error('❌ [ORDER] Failed:', error);
   //     alert(`Order failed: ${error.message}`);
   //   }
@@ -88,12 +89,12 @@ const BTCChartWrapper = ({memberId="509"}) => {
 
   return (
     <BTCChart
-      memberId={memberId}
-      betAmount={state?.betAmount}
-      selectedTrend={state?.selectedTrend}
+      memberId={state.memberId}
+      bearerToken={bearerToken}
+      betAmount={state.betAmount}
+      selectedTrend={state.selectedTrend}
       setBetAmount={(val) => handleInputChange(val, 'betAmount')}
       setSelectedTrend={(val) => handleInputChange(val, 'selectedTrend')}
-      // handleCreateOrder={handleCreateOrder}
     />
   );
 };

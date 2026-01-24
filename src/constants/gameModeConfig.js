@@ -16,9 +16,9 @@ export const GAME_MODES = {
     totalPatterns: 4,
     patterns: [
       { code: 'AU', label: 'Mooning', dots: ['up', 'up', 'up'], enabled: true, type: 'up' },
-      { code: 'SU', label: 'Out of Gas', dots: ['down', 'up', 'up'], enabled: true, type: 'up' },
+      { code: 'QD', label: 'The Trap', dots: ['up', 'down', 'down'], enabled: true, type: 'down' },
+      { code: 'SD', label: 'Lucky Bounce', dots: ['down', 'down', 'up'], enabled: true, type: 'up' },
       { code: 'AD', label: 'Dumping', dots: ['down', 'down', 'down'], enabled: true, type: 'down' },
-      { code: 'SD', label: 'Lucky Bounce', dots: ['down', 'down', 'up'], enabled: true, type: 'down' },
     ],
     
     // Token configuration
