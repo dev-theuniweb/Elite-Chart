@@ -7,7 +7,7 @@ import BTCChart from './BTCChart';
  * This matches the architecture used by the team member's implementation
  */
 const BTCChartWrapper = ({
-  memberId="509",
+  memberId="2924",
   bearerToken="DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL"
 }) => {
   const [state, setState] = useState({
