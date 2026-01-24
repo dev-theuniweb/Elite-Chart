@@ -2791,40 +2791,15 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
         {alertMessage && <div className="btc-alert">{alertMessage}</div>}
       </div>
 
-      {/* 🎮 Game Mode Dropdown - Temporarily hidden (only INSURANCE mode active) */}
-      {false && (
+      {/* 🎮 Game Mode Display - Static (no dropdown) */}
       <div className="btc-game-mode-selector">
         <div 
-          className={`game-mode-dropdown ${currentOrder !== null ? 'disabled' : ''} ${isGameModeDropdownOpen ? 'open' : ''}`}
-          onClick={() => !currentOrder && setIsGameModeDropdownOpen(!isGameModeDropdownOpen)}
-          title="Select Game Mode"
+          className="game-mode-dropdown"
+          title="Game Mode"
         >
           <span className="game-mode-dropdown-label">{currentGameMode.label}</span>
-          <span className="game-mode-dropdown-arrow">▼</span>
         </div>
-        
-        {isGameModeDropdownOpen && !currentOrder && (
-          <div className="game-mode-dropdown-menu">
-            {Object.keys(GAME_MODES).map((modeKey) => {
-              const mode = GAME_MODES[modeKey];
-              return (
-                <div
-                  key={modeKey}
-                  className={`game-mode-dropdown-option ${selectedGameModeKey === modeKey ? 'selected' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    switchGameMode(modeKey);
-                    setIsGameModeDropdownOpen(false);
-                  }}
-                >
-                  {mode.label}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
-      )}
 
       {/* Battle Timer Display - Above everything */}
       <div className="btc-timer-container">
