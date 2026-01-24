@@ -221,7 +221,7 @@ const getSmoothPath = (points) => {
 const formatNumber = (num) =>
   num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const BTCChart = ({ memberId, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange }) => {
+const BTCChart = ({ memberId, bearerToken, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange }) => {
   
   // Raw data storage (always 1-second intervals)
   const [rawData, setRawData] = useState(() => {
@@ -968,7 +968,7 @@ const BTCChart = ({ memberId, betAmount, setBetAmount, selectedTrend, setSelecte
         console.log('🎮 [API] Fetching game configuration:', apiUrl);
         const response = await fetch(apiUrl, {
           headers: {
-            'Authorization': 'Bearer DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL'
+            'Authorization': `Bearer ${bearerToken}`
           }
         });
         
@@ -3003,32 +3003,7 @@ const BTCChart = ({ memberId, betAmount, setBetAmount, selectedTrend, setSelecte
         </div> {/* Close btc-trading-panel */}
       </div> {/* Close btc-two-column-wrapper */}
 
-      {/* Member Authentication UI - Game Engine */}
-      {/* Only show if memberId not provided as prop (lifted state architecture) */}
-      {!memberId && !isGameEngineConnected && (
-        <div className="btc-member-auth">
-          <input
-            type="text"
-            placeholder="Member ID"
-            value={effectiveMemberId}
-            onChange={(e) => {
-              // Only allow local state if not controlled by parent
-              if (setMemberId) {
-                setMemberId(e.target.value);
-              }
-            }}
-            disabled={isGameEngineConnected}
-            className="btc-member-auth-input"
-          />
-          <button
-            onClick={connectToGameEngine}
-            disabled={isGameEngineConnected}
-            className="btc-member-auth-button"
-          >
-            {isGameEngineConnected ? '✓ Connected' : 'Connect'}
-          </button>
-        </div>
-      )}
+
 
       {/* Detailed history dropdown (optional) */}
       {showHistory && (
