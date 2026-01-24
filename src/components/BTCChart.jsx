@@ -221,8 +221,9 @@ const getSmoothPath = (points) => {
 const formatNumber = (num) =>
   num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const BTCChart = ({ memberId, bearerToken, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange }) => {
-  
+const BTCChart = ({ memberId, bearerToken, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange, passBalance }) => {
+  const {ImageFilePath1, Symbol, Point01} = balance || {};
+
   // Raw data storage (always 1-second intervals)
   const [rawData, setRawData] = useState(() => {
     let basePrice = INITIAL_PRICE;
@@ -2890,13 +2891,13 @@ const BTCChart = ({ memberId, bearerToken, betAmount, setBetAmount, selectedTren
             <div className="trading-balance-label">Balance</div>
             <div className="trading-balance-value">
               <img 
-                src="https://siteimg.iiifleche.io/Site/183_IIIF//220200_Market_Rates/Coin03.png" 
+                src={passBalance?.ImageFilePath1}
                 alt={currentGameMode.defaultToken} 
                 className="gmchip-icon"
               />
-              <span className="gmchip-text">{currentGameMode.defaultToken}</span>
+              <span className="gmchip-text">{passBalance?.Symbol}</span>
               <span className="gmchip-amount">
-                {balance.toLocaleString('en-US', {
+                {passBalance?.Point01.toLocaleString('en-US', {
                   minimumFractionDigits: 4,
                   maximumFractionDigits: 4
                 })}
