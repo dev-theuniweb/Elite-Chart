@@ -8,7 +8,8 @@ import BTCChart from './BTCChart';
  */
 const BTCChartWrapper = ({
   memberId="2924",
-  bearerToken="DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL"
+  bearerToken="DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL",
+  initialBalance=2000 // Team member can pass their Point01 value here
 }) => {
   const [state, setState] = useState({
     memberId: memberId, // Use prop or default
@@ -91,6 +92,7 @@ const BTCChartWrapper = ({
     <BTCChart
       memberId={state.memberId}
       bearerToken={bearerToken}
+      initialBalance={initialBalance}
       betAmount={state.betAmount}
       selectedTrend={state.selectedTrend}
       setBetAmount={(val) => handleInputChange(val, 'betAmount')}
