@@ -221,7 +221,7 @@ const getSmoothPath = (points) => {
 const formatNumber = (num) =>
   num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const BTCChart = ({ memberId, bearerToken, initialBalance = 2000, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange }) => {
+const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount, selectedTrend, setSelectedTrend, onGameModeChange }) => {
   
   // Raw data storage (always 1-second intervals)
   const [rawData, setRawData] = useState(() => {
@@ -515,7 +515,7 @@ const BTCChart = ({ memberId, bearerToken, initialBalance = 2000, betAmount, set
   }, []);
 
   // Betting interface state
-  const [balance, setBalance] = useState(initialBalance);
+  const [balance, setBalance] = useState(passBalance?.Point01 || 2000);
   // betAmount and selectedTrend are now controlled by parent via props
   const [selectedBet, setSelectedBet] = useState(null); // 'up' or 'down'
   // Legacy activeBets state removed - now using bettingRounds.{timeframe}.activeBets for each timeframe
@@ -2896,7 +2896,7 @@ const BTCChart = ({ memberId, bearerToken, initialBalance = 2000, betAmount, set
               />
               <span className="gmchip-text">{currentGameMode.defaultToken}</span>
               <span className="gmchip-amount">
-                {balance.toLocaleString('en-US', {
+                {(passBalance?.Point01 || balance).toLocaleString('en-US', {
                   minimumFractionDigits: 4,
                   maximumFractionDigits: 4
                 })}
