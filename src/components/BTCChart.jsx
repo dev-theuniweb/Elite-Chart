@@ -2791,7 +2791,8 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
         {alertMessage && <div className="btc-alert">{alertMessage}</div>}
       </div>
 
-      {/* 🎮 Game Mode Dropdown - Independent control */}
+      {/* 🎮 Game Mode Dropdown - Temporarily hidden (only INSURANCE mode active) */}
+      {false && (
       <div className="btc-game-mode-selector">
         <div 
           className={`game-mode-dropdown ${currentOrder !== null ? 'disabled' : ''} ${isGameModeDropdownOpen ? 'open' : ''}`}
@@ -2823,6 +2824,7 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
           </div>
         )}
       </div>
+      )}
 
       {/* Battle Timer Display - Above everything */}
       <div className="btc-timer-container">
