@@ -3003,8 +3003,6 @@ const BTCChart = ({ memberId, bearerToken, betAmount, setBetAmount, selectedTren
         </div> {/* Close btc-trading-panel */}
       </div> {/* Close btc-two-column-wrapper */}
 
-
-
       {/* Detailed history dropdown (optional) */}
       {showHistory && (
         <div className="btc-result-history-list">
