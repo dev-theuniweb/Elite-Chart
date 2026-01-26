@@ -71,9 +71,9 @@ export const GAME_MODES = {
     patterns: [
       // Row 1: UP patterns
       { code: 'AU', label: 'Mooning', dots: ['up', 'up', 'up'], enabled: true, type: 'up' },
-      { code: 'SU', label: 'Out of Gas', dots: ['down', 'up', 'up'], enabled: true, type: 'up' },
+      { code: 'SU', label: 'Out of Gas', dots: ['up', 'up', 'down'], enabled: true, type: 'up' },
       { code: 'MU', label: 'Rollercoaster', dots: ['up', 'down', 'up'], enabled: true, type: 'up' },
-      { code: 'QU', label: 'Comeback', dots: ['up', 'up', 'down'], enabled: true, type: 'up' },
+      { code: 'QU', label: 'Comeback', dots: ['down', 'up', 'up'], enabled: true, type: 'up' },
       
       // Row 2: DOWN patterns
       { code: 'AD', label: 'Dumping', dots: ['down', 'down', 'down'], enabled: true, type: 'down' },
@@ -131,9 +131,9 @@ export const GAME_MODES = {
     patterns: [
       // Row 1: UP patterns
       { code: 'AU', label: 'Mooning', dots: ['up', 'up', 'up'], enabled: true, type: 'up' },
-      { code: 'SU', label: 'Out of Gas', dots: ['down', 'up', 'up'], enabled: true, type: 'up' },
+      { code: 'SU', label: 'Out of Gas', dots: ['up', 'up', 'down'], enabled: true, type: 'up' },
       { code: 'MU', label: 'Rollercoaster', dots: ['up', 'down', 'up'], enabled: true, type: 'up' },
-      { code: 'QU', label: 'Comeback', dots: ['up', 'up', 'down'], enabled: true, type: 'up' },
+      { code: 'QU', label: 'Comeback', dots: ['down', 'up', 'up'], enabled: true, type: 'up' },
       
       // Row 2: DOWN patterns
       { code: 'AD', label: 'Dumping', dots: ['down', 'down', 'down'], enabled: true, type: 'down' },
