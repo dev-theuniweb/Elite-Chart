@@ -8,7 +8,7 @@ import BTCChart from './BTCChart';
  */
 const BTCChartWrapper = ({
   memberId="2924",
-  bearerToken="DLn9rzEE_P-HTIufFKOn-SbpwBGw54SRm4c2jZUwWDykQGGfId2CV51Tpaa7QyaCu2-OHJcuQOokIpkCr7Gw71tPCnOg_tC_ylXB-2HnuAd5b5MHcOsICMVrlxvjZJSZqi27uuCBYZrapJgG1gtejUaZmqRVSLebZw9_1Shkbq3ze2Q10uEGVqLiJLLNdpVV5XFMAXVrTnQlJ3-L839KGpV-J9qww5Z-54G3bptL7kSS4cL2ulFLQmTYbLred5aL",
+  bearerToken="N7BsSCVhbpNpwYgq9aNHMFoFopprzvrBEmOEXYW1tuYSaYOZf_1VtLnFnHzyiW-HVX57880j4jZ03-VT3M761Tn4n55vqhwqf6q4e56N19p15qTgseMQElKSw-E3LVZp8acPrnuFYBu4ttAO5VCyNMiYm5ykTFYV8iiNfurD5_nx-kiFQ2HitbrxkMZ5G5_kmkF3uRZUpAfYt0NgHoHrOlPh4e-_a2Eyffr5qvJ3xQMie0SUTkT4Q5FnCtjeTMWE",
   passBalance // Team member passes {Point01: value, Symbol: 'string', PaintAs: 'string'}
 }) => {
   const [state, setState] = useState({

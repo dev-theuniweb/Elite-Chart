@@ -1029,14 +1029,14 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
           setTrendsList([]);
         }
         
-        // Update min/max amounts
-        if (data.minAmount) {
-          setMinAmount(data.minAmount.toString());
-          console.log(`💰 [API] Min amount: ${data.minAmount}`);
+        // Update min/max amounts (API uses capital M: MinAmount, MaxAmount)
+        if (data.MinAmount) {
+          setMinAmount(data.MinAmount.toString());
+          console.log(`💰 [API] Min amount: ${data.MinAmount}`);
         }
-        if (data.maxAmount) {
-          setMaxAmount(data.maxAmount.toString());
-          console.log(`💰 [API] Max amount: ${data.maxAmount}`);
+        if (data.MaxAmount) {
+          setMaxAmount(data.MaxAmount.toString());
+          console.log(`💰 [API] Max amount: ${data.MaxAmount}`);
         }
         
         // Store payout percent for future use
