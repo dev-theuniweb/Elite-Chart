@@ -521,8 +521,7 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
   // Legacy activeBets state removed - now using bettingRounds.{timeframe}.activeBets for each timeframe
   const [bettingHistory, setBettingHistory] = useState([]); // Track betting results
   
-  // Dynamic trends from API
-  const [trendsList, setTrendsList] = useState([]);
+  // API configuration data
   const [payoutPercent, setPayoutPercent] = useState(null);
   const [minAmount, setMinAmount] = useState('10.00');
   const [maxAmount, setMaxAmount] = useState('30.00');
@@ -963,8 +962,8 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
 
     const fetchGameConfig = async () => {
       try {
-        // Build API URL with memberId parameter
-        const apiUrl = `https://api.iiifleche.io/api/v1/game/get/6?memberId=${effectiveMemberId}`;
+        // Build API URL with memberId parameter - uses dynamic GameID based on current mode
+        const apiUrl = `https://api.iiifleche.io/api/v1/game/get/${currentGameMode.id}?memberId=${effectiveMemberId}`;
         console.log('🎮 [API] Fetching game configuration:', apiUrl);
         const response = await fetch(apiUrl, {
           headers: {
@@ -982,52 +981,6 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
         // Extract the actual data from the wrapper
         const data = response_data.Data || response_data;
         console.log('📊 [API] Actual game data:', data);
-        
-        // Parse trendsName into trend objects
-        if (data.trendsName) {
-          const trendNames = data.trendsName.split(',').map(t => t.trim());
-          console.log('🎯 [API] Trend names:', trendNames);
-          
-          // Map trend names to codes (AU, SU, MU, QU, AD, SD, MD, QD)
-          const trendCodes = ['AU', 'SU', 'MU', 'QU', 'AD', 'SD', 'MD', 'QD'];
-          const trendDots = {
-            'AU': ['up', 'up', 'up'],
-            'SU': ['down', 'up', 'up'],
-            'MU': ['up', 'down', 'up'],
-            'QU': ['up', 'up', 'down'],
-            'AD': ['down', 'down', 'down'],
-            'SD': ['down', 'down', 'up'],
-            'MD': ['down', 'up', 'down'],
-            'QD': ['up', 'down', 'down']
-          };
-          
-          const trendTypes = {
-            'AU': 'up', 'SU': 'up', 'MU': 'up', 'QU': 'up',
-            'AD': 'down', 'SD': 'down', 'MD': 'down', 'QD': 'down'
-          };
-          
-          const parsedTrends = trendNames.map((name, index) => ({
-            code: trendCodes[index],
-            label: name,
-            dots: trendDots[trendCodes[index]],
-            enabled: true,
-            type: trendTypes[trendCodes[index]]
-          }));
-          
-          console.log('✅ [API] Parsed trends:', parsedTrends);
-          
-          // Only use API trends if count matches current game mode
-          if (parsedTrends.length === currentGameMode.totalPatterns) {
-            setTrendsList(parsedTrends);
-            console.log(`✅ [API] Using ${parsedTrends.length} trends from API`);
-          } else {
-            console.log(`⚠️ [API] Trend count mismatch. API: ${parsedTrends.length}, Game Mode: ${currentGameMode.totalPatterns}. Using game mode patterns.`);
-            setTrendsList([]);
-          }
-        } else {
-          console.log('⚠️ [API] No trends in response, using game mode patterns');
-          setTrendsList([]);
-        }
         
         // Update min/max amounts (API uses capital M: MinAmount, MaxAmount)
         if (data.MinAmount) {
@@ -1072,9 +1025,6 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
         
       } catch (error) {
         console.error('❌ [API] Failed to fetch game config:', error);
-        // Use game mode patterns on error (don't override)
-        console.log('⚠️ [API] Error fetching config, using game mode patterns');
-        setTrendsList([]);
         setPayoutData({});
       }
     };
