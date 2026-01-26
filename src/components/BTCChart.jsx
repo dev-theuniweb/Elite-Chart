@@ -1055,7 +1055,7 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
       console.log('🛑 [API] Stopping game config refresh interval');
       clearInterval(syncInterval);
     };
-  }, [effectiveMemberId, currentOrder]); // Add currentOrder as dependency
+  }, [effectiveMemberId, currentOrder, currentGameMode]); // Re-fetch when game mode changes
   
   // Rotate phase title every 3 seconds
   useEffect(() => {
