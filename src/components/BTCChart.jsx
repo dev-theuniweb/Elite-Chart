@@ -2801,14 +2801,40 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
         {alertMessage && <div className="btc-alert">{alertMessage}</div>}
       </div>
 
-      {/* 🎮 Game Mode Display - Static (no dropdown) */}
+      {/* 🎮 Game Mode Selector - Dropdown enabled */}
       <div className="btc-game-mode-selector">
         <div 
-          className="game-mode-dropdown"
-          title="Game Mode"
+          className={`game-mode-dropdown ${isGameModeDropdownOpen ? 'open' : ''} ${currentOrder !== null ? 'disabled' : ''}`}
+          onClick={() => {
+            if (currentOrder === null) {
+              setIsGameModeDropdownOpen(!isGameModeDropdownOpen);
+            }
+          }}
+          title={currentOrder !== null ? "Cannot change mode during active game" : "Click to change game mode"}
         >
           <span className="game-mode-dropdown-label">{currentGameMode.label}</span>
+          <span className="game-mode-dropdown-arrow">▼</span>
         </div>
+        
+        {/* Dropdown Menu */}
+        {isGameModeDropdownOpen && currentOrder === null && (
+          <div className="game-mode-dropdown-menu">
+            {Object.entries(GAME_MODES)
+              .filter(([key]) => key !== 'BATTLE') // Hide Battle mode
+              .map(([key, mode]) => (
+              <div
+                key={key}
+                className={`game-mode-dropdown-option ${selectedGameModeKey === key ? 'selected' : ''}`}
+                onClick={() => {
+                  switchGameMode(key);
+                  setIsGameModeDropdownOpen(false);
+                }}
+              >
+                {mode.label}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Battle Timer Display - Above everything */}
