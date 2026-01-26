@@ -1860,9 +1860,19 @@ const BTCChart = ({ memberId, bearerToken, passBalance, betAmount, setBetAmount,
       round3Price: 0
     });
     
-    // Validate bet amount
+    // Validate bet amount against balance
     if (!betAmount || betAmount <= 0 || betAmount > balance) {
       alert(`Invalid bet amount. Please enter an amount between 1 and ${balance}`);
+      return;
+    }
+    
+    // Validate bet amount against min/max limits from API
+    const minLimit = parseFloat(minAmount);
+    const maxLimit = parseFloat(maxAmount);
+    const betValue = parseFloat(betAmount);
+    
+    if (betValue < minLimit || betValue > maxLimit) {
+      alert(`Invalid amount, minimum is ${minAmount} and maximum is ${maxAmount}`);
       return;
     }
 
